@@ -6,54 +6,32 @@
     <title>Laevad</title>
     <style>
         :root {
-            --bg-color: #121212;
-            --grid-color: #2c2c2c;
-            --ship-color: #3a86ff;
-            --hit-color: #ff006e;
-            --sunk-color: #9d00ff;
-            --miss-color: #555;
-            --text-color: #e0e0e0;
-            --cell-bg: #1a1a1a;
+            --bg-color: #121212; --grid-color: #2c2c2c; --ship-color: #3a86ff;
+            --hit-color: #ff006e; --sunk-color: #9d00ff; --miss-color: #555;
+            --text-color: #e0e0e0; --cell-bg: #1a1a1a;
         }
         body.light-mode {
-            --bg-color: #f0f0f0;
-            --grid-color: #d1d1d1;
-            --ship-color: #0056b3;
-            --hit-color: #d80032;
-            --sunk-color: #7000b3;
-            --miss-color: #999;
-            --text-color: #222;
-            --cell-bg: #ffffff;
+            --bg-color: #f0f0f0; --grid-color: #d1d1d1; --ship-color: #0056b3;
+            --hit-color: #d80032; --sunk-color: #7000b3; --miss-color: #999;
+            --text-color: #222; --cell-bg: #ffffff;
         }
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            background-color: var(--bg-color); color: var(--text-color);
             font-family: -apple-system, system-ui, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 0;
-            padding: 10px;
-            transition: background 0.3s;
-            user-select: none;
-            min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
+            margin: 0; padding: 10px; transition: background 0.3s;
+            user-select: none; min-height: 100vh;
         }
         .header { display: flex; justify-content: space-between; width: 95vw; max-width: 400px; align-items: center; }
-        .stats { font-size: 0.9rem; margin: 5px 0; color: var(--ship-color); font-weight: bold; }
-        h2 { font-weight: 300; margin: 5px 0; font-size: 0.8rem; letter-spacing: 1px; opacity: 0.7; text-transform: uppercase; }
+        .stats { font-size: 0.8rem; margin: 2px 0; color: var(--ship-color); font-weight: bold; }
+        #turn-info { font-size: 0.9rem; height: 1.2rem; color: var(--hit-color); margin: 10px 0; font-weight: bold; }
         
         .board {
-            display: grid;
-            grid-template-columns: repeat(10, 1fr);
-            gap: 1px;
-            background-color: var(--grid-color);
-            border: 1px solid var(--grid-color);
-            width: 88vw;
-            max-width: 330px;
-            aspect-ratio: 1 / 1;
-            margin-bottom: 8px;
+            display: grid; grid-template-columns: repeat(10, 1fr); gap: 1px;
+            background-color: var(--grid-color); border: 1px solid var(--grid-color);
+            width: 85vw; max-width: 320px; aspect-ratio: 1 / 1; margin-bottom: 8px;
         }
-        .cell { background-color: var(--cell-bg); display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .cell { background-color: var(--cell-bg); display: flex; align-items: center; justify-content: center; }
         .my-board .cell.ship { background-color: rgba(58, 134, 255, 0.2); }
         .cell.hit { background-color: var(--hit-color) !important; animation: pop 0.3s ease; }
         .cell.sunk { background-color: var(--sunk-color) !important; }
@@ -61,111 +39,121 @@
         
         @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
 
-        #message-overlay {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.95);
-            padding: 30px;
-            border-radius: 15px;
-            text-align: center;
-            z-index: 100;
-            border: 2px solid var(--ship-color);
-            width: 80%;
-            max-width: 300px;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        .controls { display: flex; gap: 5px; margin-top: 5px; flex-wrap: wrap; justify-content: center; }
+        button { 
+            background: var(--ship-color); border: none; color: white; 
+            padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer;
+            font-size: 12px;
         }
+        .difficulty-btn { background: var(--grid-color); opacity: 0.6; }
+        .difficulty-btn.active { opacity: 1; border: 1px solid white; }
 
-        .theme-toggle { background: none; border: 1px solid var(--text-color); color: var(--text-color); padding: 4px 10px; border-radius: 15px; font-size: 11px; opacity: 0.6; }
-        button.main-btn { background: var(--ship-color); border: none; color: white; padding: 10px 30px; border-radius: 8px; font-weight: bold; margin-top: 5px; cursor: pointer; }
-        
-        /* Arendaja info stiil */
-        footer {
-            margin-top: auto;
-            padding: 20px 0 10px 0;
-            text-align: center;
-            font-size: 0.75rem;
-            opacity: 0.5;
-            letter-spacing: 0.5px;
-            line-height: 1.4;
+        #message-overlay {
+            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95); padding: 30px; border-radius: 15px; text-align: center;
+            z-index: 100; border: 2px solid var(--ship-color); width: 80%; max-width: 300px;
         }
+        footer { margin-top: auto; padding: 15px 0; text-align: center; font-size: 0.7rem; opacity: 0.4; }
     </style>
 </head>
 <body>
 
     <div id="message-overlay">
-        <h1 id="win-title" style="margin-top: 0;">VÕIT!</h1>
+        <h1 id="win-title">VÕIT!</h1>
         <p id="win-text"></p>
-        <button class="main-btn" onclick="initGame()">Uus lahing</button>
+        <button onclick="initGame()">Uus mäng</button>
     </div>
 
     <div class="header">
-        <h1 style="font-weight: 300; margin: 5px 0;">LAEVAD</h1>
-        <button class="theme-toggle" onclick="toggleTheme()">M/V</button>
+        <h1 style="font-weight: 300; margin: 5px 0; font-size: 1.5rem;">LAEVAD</h1>
+        <button style="background:none; border:1px solid var(--text-color); color:var(--text-color); font-size:10px;" onclick="document.body.classList.toggle('light-mode')">M/V</button>
     </div>
 
-    <div id="enemy-stats" class="stats">Vastane: 5/5</div>
-    <h2>VASTANE</h2>
+    <div class="controls">
+        <button id="diff-0" class="difficulty-btn" onclick="setDiff(0)">KERGE</button>
+        <button id="diff-1" class="difficulty-btn active" onclick="setDiff(1)">KESKMINE</button>
+        <button id="diff-2" class="difficulty-btn" onclick="setDiff(2)">RASKE</button>
+    </div>
+
+    <div id="turn-info">Vali raskusaste ja alusta</div>
+
+    <div class="stats" id="enemy-stats">Vastane: 5/5</div>
     <div id="enemy-board" class="board"></div>
 
-    <div id="my-stats" class="stats">Sina: 5/5</div>
-    <h2>SINA</h2>
+    <div class="stats" id="my-stats">Sina: 5/5</div>
     <div id="my-board" class="board my-board"></div>
 
-    <button class="main-btn" onclick="initGame()">Uus mäng</button>
+    <button style="margin-top:10px; width: 200px;" onclick="initGame()">ALUSTA UUT MÄNGU</button>
 
-    <footer>
-        Arendaja: Perekond Ojaküla<br>
-        2026 Aprill
-    </footer>
+    <footer>Arendaja: Perekond Ojaküla<br>2026 Aprill</footer>
 
     <script>
         const size = 10;
-        const shipSizes = [5, 4, 3, 3, 2];
-        let enemyShips, myShips, gameOver;
+        let enemyShips, myShips, gameOver, isPlayerTurn, difficulty = 1;
+        let huntStack = [], audioCtx = null;
 
-        const winMessages = ["Oled tõeline admiral!", "Vaenlane on põhjas. Hiilgav töö!", "Sinu strateegia oli murdmatu!", "Meri on nüüd vaba. Võit on sinu!", "Geniaalne käik!", "Admiral, meri on puhas!"];
-        const lossMessages = ["Seekord jäid lained peale...", "Vastane oli kavalam.", "Sinu laevastik puhkab põhjas.", "Taganemine! Järgmine kord võidame."];
+        function setDiff(d) {
+            difficulty = d;
+            document.querySelectorAll('.difficulty-btn').forEach((b, i) => b.classList.toggle('active', i === d));
+        }
 
-        function toggleTheme() { document.body.classList.toggle('light-mode'); }
+        // --- HELI GENERATOR ---
+        function playSound(type) {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+
+            if (type === 'hit') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+            } else if (type === 'miss') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(50, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'win') {
+                [261, 329, 392, 523].forEach((f, i) => {
+                    const o = audioCtx.createOscillator(); o.connect(gain);
+                    o.frequency.setValueAtTime(f, audioCtx.currentTime + i*0.1);
+                    o.start(audioCtx.currentTime + i*0.1); o.stop(audioCtx.currentTime + i*0.1 + 0.3);
+                });
+            }
+        }
 
         function initGame() {
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
             document.getElementById('message-overlay').style.display = 'none';
-            gameOver = false;
-            enemyShips = placeAllShips();
-            myShips = placeAllShips();
-            render('enemy-board', enemyShips, true);
-            render('my-board', myShips, false);
+            gameOver = false; isPlayerTurn = true; huntStack = [];
+            document.getElementById('turn-info').innerText = "Sinu kord tulistada";
+            enemyShips = placeAllShips(); myShips = placeAllShips();
+            render('enemy-board', enemyShips, true); render('my-board', myShips, false);
             updateStats();
         }
 
         function placeAllShips() {
             const board = Array(size).fill(0).map(() => Array(size).fill(0));
             const ships = [];
-            shipSizes.forEach(s => {
+            [5, 4, 3, 3, 2].forEach(s => {
                 let ok = false;
                 while (!ok) {
-                    const vert = Math.random() > 0.5;
-                    const r = Math.floor(Math.random() * (vert ? size - s : size));
-                    const c = Math.floor(Math.random() * (vert ? size : size - s));
+                    const vert = Math.random() > 0.5, r = Math.floor(Math.random() * (vert ? size - s : size)), c = Math.floor(Math.random() * (vert ? size : size - s));
                     let free = true;
-                    for (let i = -1; i <= s; i++) {
-                        for (let j = -1; j <= 1; j++) {
-                            const rr = vert ? r + i : r + j, cc = vert ? c + j : c + i;
-                            if (rr >= 0 && rr < size && cc >= 0 && cc < size && board[rr][cc]) free = false;
-                        }
+                    for (let i = -1; i <= s; i++) for (let j = -1; j <= 1; j++) {
+                        const rr = vert ? r + i : r + j, cc = vert ? c + j : c + i;
+                        if (rr >= 0 && rr < size && cc >= 0 && cc < size && board[rr][cc]) free = false;
                     }
                     if (free) {
                         const coords = [];
                         for (let i = 0; i < s; i++) {
                             const row = vert ? r + i : r, col = vert ? c : c + i;
-                            board[row][col] = 1;
-                            coords.push({r: row, c: col, hit: false});
+                            board[row][col] = 1; coords.push({r: row, c: col, hit: false});
                         }
-                        ships.push({coords, sunk: false});
-                        ok = true;
+                        ships.push({coords, sunk: false}); ok = true;
                     }
                 }
             });
@@ -173,27 +161,23 @@
         }
 
         function render(id, data, isEnemy) {
-            const el = document.getElementById(id);
-            el.innerHTML = '';
-            for (let r = 0; r < size; r++) {
-                for (let c = 0; c < size; c++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'cell';
-                    if (data.board[r][c] === 1 && !isEnemy) cell.classList.add('ship');
-                    cell.onclick = () => isEnemy && userShoot(r, c, cell, data);
-                    el.appendChild(cell);
-                }
+            const el = document.getElementById(id); el.innerHTML = '';
+            for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) {
+                const cell = document.createElement('div'); cell.className = 'cell';
+                if (data.board[r][c] === 1 && !isEnemy) cell.classList.add('ship');
+                cell.onclick = () => isEnemy && userShoot(r, c, cell, data);
+                el.appendChild(cell);
             }
         }
 
         function userShoot(r, c, cell, data) {
-            if (gameOver || cell.classList.contains('hit') || cell.classList.contains('miss') || cell.classList.contains('sunk')) return;
+            if (!isPlayerTurn || gameOver || cell.classList.contains('hit') || cell.classList.contains('miss') || cell.classList.contains('sunk')) return;
             if (data.board[r][c] === 1) {
-                handleHit(r, c, data, 'enemy-board');
-                if (data.ships.every(s => s.sunk)) showEndGame(true);
+                playSound('hit'); handleHit(r, c, data, 'enemy-board');
+                if (data.ships.every(s => s.sunk)) { playSound('win'); showEndGame(true); }
             } else {
-                cell.classList.add('miss');
-                setTimeout(enemyTurn, 400);
+                playSound('miss'); cell.classList.add('miss'); isPlayerTurn = false;
+                document.getElementById('turn-info').innerText = "Vastane mõtleb..."; setTimeout(enemyTurn, 800);
             }
         }
 
@@ -213,30 +197,49 @@
         }
 
         function markSurroundings(r, c, boardId) {
-            for (let i = -1; i <= 1; i++) {
-                for (let j = -1; j <= 1; j++) {
-                    const rr = r + i, cc = c + j;
-                    if (rr >= 0 && rr < size && cc >= 0 && cc < size) {
-                        const cell = document.getElementById(boardId).children[rr * size + cc];
-                        if (!cell.classList.contains('hit') && !cell.classList.contains('sunk')) cell.classList.add('miss');
-                    }
+            for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
+                const rr = r + i, cc = c + j;
+                if (rr >= 0 && rr < size && cc >= 0 && cc < size) {
+                    const cell = document.getElementById(boardId).children[rr * size + cc];
+                    if (!cell.classList.contains('hit') && !cell.classList.contains('sunk')) cell.classList.add('miss');
                 }
             }
         }
 
         function enemyTurn() {
             if (gameOver) return;
-            let r, c, cell;
-            do {
-                r = Math.floor(Math.random() * size);
-                c = Math.floor(Math.random() * size);
-                cell = document.getElementById('my-board').children[r * size + c];
-            } while (cell.classList.contains('hit') || cell.classList.contains('miss') || cell.classList.contains('sunk'));
+            let r, c;
+            if (difficulty > 0 && huntStack.length > 0) {
+                const next = huntStack.pop(); r = next.r; c = next.c;
+            } else {
+                do {
+                    r = Math.floor(Math.random() * size); c = Math.floor(Math.random() * size);
+                    // Raske tase kasutab malelaua mustrit (ainult paaris ruudud), et kiiremini laevu leida
+                    if (difficulty === 2 && (r + c) % 2 !== 0 && Math.random() > 0.3) continue; 
+                } while (isInvalid(r, c));
+            }
+            const cell = document.getElementById('my-board').children[r * size + c];
             if (myShips.board[r][c] === 1) {
-                handleHit(r, c, myShips, 'my-board');
+                playSound('hit'); handleHit(r, c, myShips, 'my-board');
+                if (difficulty > 0) addNeighbors(r, c);
                 if (myShips.ships.every(s => s.sunk)) showEndGame(false);
-                else setTimeout(enemyTurn, 600);
-            } else cell.classList.add('miss');
+                else setTimeout(enemyTurn, 800);
+            } else {
+                playSound('miss'); cell.classList.add('miss'); isPlayerTurn = true;
+                document.getElementById('turn-info').innerText = "Sinu kord tulistada";
+            }
+        }
+
+        function isInvalid(r, c) {
+            const cell = document.getElementById('my-board').children[r * size + c];
+            return cell.classList.contains('hit') || cell.classList.contains('miss') || cell.classList.contains('sunk');
+        }
+
+        function addNeighbors(r, c) {
+            [{r:1,c:0}, {r:-1,c:0}, {r:0,c:1}, {r:0,c:-1}].forEach(d => {
+                const nr = r + d.r, nc = c + d.c;
+                if (nr >= 0 && nr < size && nc >= 0 && nc < size && !isInvalid(nr, nc)) huntStack.push({r: nr, c: nc});
+            });
         }
 
         function updateStats() {
@@ -246,16 +249,12 @@
             document.getElementById('my-stats').innerText = `Sul uputatud: ${mSunk}/5`;
         }
 
-        function showEndGame(isWin) {
-            gameOver = true;
-            const title = document.getElementById('win-title');
-            title.innerText = isWin ? "VÕIT!" : "KAOTUS...";
-            title.style.color = isWin ? "var(--ship-color)" : "var(--hit-color)";
-            document.getElementById('win-text').innerText = isWin ? winMessages[Math.floor(Math.random() * winMessages.length)] : lossMessages[Math.floor(Math.random() * lossMessages.length)];
-            document.getElementById('message-overlay').style.display = 'block';
+        function showEndGame(win) {
+            gameOver = true; const ov = document.getElementById('message-overlay');
+            document.getElementById('win-title').innerText = win ? "VÕIT!" : "KAOTUS...";
+            document.getElementById('win-text').innerText = win ? "Admiral Ojaküla, võit on teie!" : "Seekord jäi peale arvuti.";
+            ov.style.display = 'block';
         }
-
-        initGame();
     </script>
 </body>
 </html>
