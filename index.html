@@ -5,28 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Laevad</title>
     <style>
-        /* Vaikimisi TUME REŽIIM */
         :root {
             --bg-color: #121212;
             --grid-color: #2c2c2c;
             --ship-color: #3a86ff;
             --hit-color: #ff006e;
+            --sunk-color: #9d00ff;
             --miss-color: #555;
             --text-color: #e0e0e0;
             --cell-bg: #1a1a1a;
         }
-
-        /* VALGE REŽIIM */
         body.light-mode {
             --bg-color: #f0f0f0;
             --grid-color: #d1d1d1;
             --ship-color: #0056b3;
             --hit-color: #d80032;
+            --sunk-color: #7000b3;
             --miss-color: #999;
             --text-color: #222;
             --cell-bg: #ffffff;
         }
-
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
@@ -36,157 +34,155 @@
             align-items: center;
             margin: 0;
             padding: 10px;
-            transition: background 0.3s, color 0.3s;
+            transition: background 0.3s;
             user-select: none;
         }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            width: 90vw;
-            max-width: 400px;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        h2 { font-weight: 300; margin: 10px 0 5px 0; font-size: 1.1rem; letter-spacing: 1px; }
-
-        .theme-toggle {
-            background: none;
-            border: 1px solid var(--text-color);
-            color: var(--text-color);
-            padding: 5px 10px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
+        .header { display: flex; justify-content: space-between; width: 95vw; max-width: 400px; align-items: center; }
+        .stats { font-size: 0.9rem; margin: 5px 0; color: var(--ship-color); font-weight: bold; }
+        h2 { font-weight: 300; margin: 5px 0; font-size: 0.9rem; letter-spacing: 1px; opacity: 0.7; }
         .board {
             display: grid;
             grid-template-columns: repeat(10, 1fr);
             gap: 1px;
             background-color: var(--grid-color);
             border: 1px solid var(--grid-color);
-            width: 85vw;
-            max-width: 320px;
+            width: 88vw;
+            max-width: 340px;
             aspect-ratio: 1 / 1;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
-
-        .cell {
-            background-color: var(--cell-bg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-
-        .my-board .cell.ship { background-color: rgba(58, 134, 255, 0.3); }
+        .cell { background-color: var(--cell-bg); display: flex; align-items: center; justify-content: center; position: relative; }
+        .my-board .cell.ship { background-color: rgba(58, 134, 255, 0.2); }
         .cell.hit { background-color: var(--hit-color) !important; }
+        .cell.sunk { background-color: var(--sunk-color) !important; }
+        .cell.miss::after { content: ""; width: 6px; height: 6px; background-color: var(--miss-color); border-radius: 50%; }
         
-        .cell.miss::after {
-            content: "";
-            width: 6px;
-            height: 6px;
-            background-color: var(--miss-color);
-            border-radius: 50%;
-        }
-
-        .controls { display: flex; gap: 10px; margin-top: 10px; }
-
-        button.main-btn {
-            background: var(--ship-color);
-            border: none;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: bold;
-        }
+        .theme-toggle { background: none; border: 1px solid var(--text-color); color: var(--text-color); padding: 4px 10px; border-radius: 15px; font-size: 11px; }
+        button.main-btn { background: var(--ship-color); border: none; color: white; padding: 10px 25px; border-radius: 8px; font-weight: bold; margin-top: 5px; }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h1>LAEVAD</h1>
-        <button class="theme-toggle" onclick="toggleTheme()">Must/Valge</button>
+        <button class="theme-toggle" onclick="toggleTheme()">M/V</button>
     </div>
 
-    <h2>VASTANE</h2>
+    <div id="enemy-stats" class="stats">Vastane: 5 laeva</div>
+    <h2>VASTANE (RÜNDA SIIN)</h2>
     <div id="enemy-board" class="board"></div>
 
-    <h2>SINA</h2>
+    <div id="my-stats" class="stats">Sina: 5 laeva</div>
+    <h2>SINU LAEVASTIK</h2>
     <div id="my-board" class="board my-board"></div>
 
-    <div class="controls">
-        <button class="main-btn" onclick="initGame()">Uus mäng</button>
-    </div>
+    <button class="main-btn" onclick="initGame()">Uus mäng</button>
 
     <script>
         const size = 10;
         const shipSizes = [5, 4, 3, 3, 2];
-        let enemyBoard, myBoard, gameOver;
+        let enemyShips, myShips, gameOver;
 
-        function toggleTheme() {
-            document.body.classList.toggle('light-mode');
-        }
+        function toggleTheme() { document.body.classList.toggle('light-mode'); }
 
         function initGame() {
             gameOver = false;
-            enemyBoard = createBoardData();
-            myBoard = createBoardData();
-            shipSizes.forEach(s => placeShip(enemyBoard, s));
-            shipSizes.forEach(s => placeShip(myBoard, s));
-            render('enemy-board', enemyBoard, true);
-            render('my-board', myBoard, false);
+            enemyShips = placeAllShips();
+            myShips = placeAllShips();
+            render('enemy-board', enemyShips, true);
+            render('my-board', myShips, false);
+            updateStats();
         }
 
-        function createBoardData() {
-            return Array(size).fill(null).map(() => Array(size).fill(0));
-        }
-
-        function placeShip(brd, s) {
-            let ok = false;
-            while (!ok) {
-                const vert = Math.random() > 0.5;
-                const r = Math.floor(Math.random() * (vert ? size - s : size));
-                const c = Math.floor(Math.random() * (vert ? size : size - s));
-                let free = true;
-                for (let i = -1; i <= s; i++) {
-                    for (let j = -1; j <= 1; j++) {
-                        const rr = vert ? r + i : r + j;
-                        const cc = vert ? c + j : c + i;
-                        if (rr >= 0 && rr < size && cc >= 0 && cc < size && brd[rr][cc]) free = false;
+        function placeAllShips() {
+            const board = Array(size).fill(0).map(() => Array(size).fill(0));
+            const ships = [];
+            shipSizes.forEach(s => {
+                let ok = false;
+                while (!ok) {
+                    const vert = Math.random() > 0.5;
+                    const r = Math.floor(Math.random() * (vert ? size - s : size));
+                    const c = Math.floor(Math.random() * (vert ? size : size - s));
+                    let free = true;
+                    for (let i = -1; i <= s; i++) {
+                        for (let j = -1; j <= 1; j++) {
+                            const rr = vert ? r + i : r + j;
+                            const cc = vert ? c + j : c + i;
+                            if (rr >= 0 && rr < size && cc >= 0 && cc < size && board[rr][cc]) free = false;
+                        }
+                    }
+                    if (free) {
+                        const coords = [];
+                        for (let i = 0; i < s; i++) {
+                            const row = vert ? r + i : r;
+                            const col = vert ? c : c + i;
+                            board[row][col] = 1;
+                            coords.push({r: row, c: col, hit: false});
+                        }
+                        ships.push({coords, sunk: false});
+                        ok = true;
                     }
                 }
-                if (free) {
-                    for (let i = 0; i < s; i++) brd[vert ? r + i : r][vert ? c : c + i] = 1;
-                    ok = true;
-                }
-            }
+            });
+            return {board, ships};
         }
 
-        function render(id, brd, isEnemy) {
+        function render(id, data, isEnemy) {
             const el = document.getElementById(id);
             el.innerHTML = '';
             for (let r = 0; r < size; r++) {
                 for (let c = 0; c < size; c++) {
                     const cell = document.createElement('div');
-                    cell.className = 'cell' + (brd[r][c] === 1 && !isEnemy ? ' ship' : '');
-                    cell.onclick = () => isEnemy && userShoot(r, c, cell, brd);
+                    cell.className = 'cell';
+                    if (data.board[r][c] === 1 && !isEnemy) cell.classList.add('ship');
+                    cell.onclick = () => isEnemy && userShoot(r, c, cell, data);
                     el.appendChild(cell);
                 }
             }
         }
 
-        function userShoot(r, c, cell, brd) {
-            if (gameOver || cell.classList.contains('hit') || cell.classList.contains('miss')) return;
-            if (brd[r][c] === 1) {
-                cell.classList.add('hit');
-                brd[r][c] = 2;
-                if (!brd.flat().includes(1)) { gameOver = true; alert("VÕIT!"); }
+        function userShoot(r, c, cell, data) {
+            if (gameOver || cell.classList.contains('hit') || cell.classList.contains('miss') || cell.classList.contains('sunk')) return;
+            if (data.board[r][c] === 1) {
+                handleHit(r, c, data, 'enemy-board');
+                if (data.ships.every(s => s.sunk)) { gameOver = true; alert("VÕIT!"); }
             } else {
                 cell.classList.add('miss');
                 setTimeout(enemyTurn, 400);
+            }
+        }
+
+        function handleHit(r, c, data, boardId) {
+            const ship = data.ships.find(s => s.coords.some(co => co.r === r && co.c === c));
+            const coord = ship.coords.find(co => co.r === r && co.c === c);
+            coord.hit = true;
+            
+            const cell = document.getElementById(boardId).children[r * size + c];
+            cell.classList.add('hit');
+
+            if (ship.coords.every(co => co.hit)) {
+                ship.sunk = true;
+                ship.coords.forEach(co => {
+                    const sCell = document.getElementById(boardId).children[co.r * size + co.c];
+                    sCell.classList.remove('hit');
+                    sCell.classList.add('sunk');
+                    markSurroundings(co.r, co.c, boardId);
+                });
+            }
+            updateStats();
+        }
+
+        function markSurroundings(r, c, boardId) {
+            for (let i = -1; i <= 1; i++) {
+                for (let j = -1; j <= 1; j++) {
+                    const rr = r + i, cc = c + j;
+                    if (rr >= 0 && rr < size && cc >= 0 && cc < size) {
+                        const cell = document.getElementById(boardId).children[rr * size + cc];
+                        if (!cell.classList.contains('hit') && !cell.classList.contains('sunk')) {
+                            cell.classList.add('miss');
+                        }
+                    }
+                }
             }
         }
 
@@ -197,16 +193,22 @@
                 r = Math.floor(Math.random() * size);
                 c = Math.floor(Math.random() * size);
                 cell = document.getElementById('my-board').children[r * size + c];
-            } while (cell.classList.contains('hit') || cell.classList.contains('miss'));
+            } while (cell.classList.contains('hit') || cell.classList.contains('miss') || cell.classList.contains('sunk'));
 
-            if (myBoard[r][c] === 1) {
-                cell.classList.add('hit');
-                myBoard[r][c] = 2;
-                if (!myBoard.flat().includes(1)) { gameOver = true; alert("KAOTUS!"); }
+            if (myShips.board[r][c] === 1) {
+                handleHit(r, c, myShips, 'my-board');
+                if (myShips.ships.every(s => s.sunk)) { gameOver = true; alert("KAOTUS!"); }
                 else setTimeout(enemyTurn, 600);
             } else {
                 cell.classList.add('miss');
             }
+        }
+
+        function updateStats() {
+            const eSunk = enemyShips.ships.filter(s => s.sunk).length;
+            const mSunk = myShips.ships.filter(s => s.sunk).length;
+            document.getElementById('enemy-stats').innerText = `Vastasel uputatud: ${eSunk}/5`;
+            document.getElementById('my-stats').innerText = `Sul uputatud: ${mSunk}/5`;
         }
 
         initGame();
