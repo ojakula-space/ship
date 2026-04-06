@@ -6,90 +6,75 @@
     <title>Laevad</title>
     <style>
         :root {
-            --bg-color: #121212; --grid-color: #2c2c2c; --ship-color: #3a86ff;
-            --hit-color: #ff006e; --sunk-color: #9d00ff; --miss-color: #555;
-            --text-color: #e0e0e0; --cell-bg: #1a1a1a;
+            --bg-color: #0b0e14; --grid-color: #1a202c; --ship-color: #3a86ff;
+            --hit-color: #ff006e; --sunk-color: #9d00ff; --miss-color: #4a5568;
+            --text-color: #e2e8f0; --cell-bg: #111722; --radar-glow: rgba(58, 134, 255, 0.15);
         }
         body.light-mode {
-            --bg-color: #f0f0f0; --grid-color: #d1d1d1; --ship-color: #0056b3;
-            --hit-color: #d80032; --sunk-color: #7000b3; --miss-color: #999;
-            --text-color: #222; --cell-bg: #ffffff;
+            --bg-color: #f7fafc; --grid-color: #edf2f7; --ship-color: #0056b3;
+            --hit-color: #d80032; --sunk-color: #7000b3; --miss-color: #cbd5e0;
+            --text-color: #1a202c; --cell-bg: #ffffff; --radar-glow: rgba(0, 0, 0, 0.05);
         }
         body {
             background-color: var(--bg-color); color: var(--text-color);
             font-family: -apple-system, system-ui, sans-serif;
             display: flex; flex-direction: column; align-items: center;
-            margin: 0; padding: 10px; transition: background 0.3s;
+            margin: 0; padding: 15px; transition: background 0.3s;
             user-select: none; min-height: 100vh;
         }
         
-        .header { 
-            width: 100%; 
-            max-width: 400px; 
-            text-align: center; 
-            position: relative;
-            margin-bottom: 10px;
-        }
-        
-        h1 { 
-            font-weight: 300; 
-            margin: 10px 0; 
-            font-size: 1.8rem; 
-            letter-spacing: 4px;
-            text-transform: uppercase;
-        }
+        .header { width: 100%; max-width: 400px; text-align: center; position: relative; margin-bottom: 20px; }
+        h1 { font-weight: 200; margin: 10px 0; font-size: 2rem; letter-spacing: 6px; text-transform: uppercase; color: var(--ship-color); }
 
         .theme-btn { 
-            position: absolute; 
-            right: 0; 
-            top: 50%; 
-            transform: translateY(-50%);
-            background: none; 
-            border: 1px solid var(--text-color); 
-            color: var(--text-color); 
-            font-size: 10px; 
-            padding: 4px 8px;
-            border-radius: 12px;
-            opacity: 0.5;
+            position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+            background: none; border: 1px solid var(--text-color); color: var(--text-color); 
+            font-size: 10px; padding: 4px 8px; border-radius: 12px; opacity: 0.4; cursor: pointer;
         }
 
-        .stats { font-size: 0.85rem; margin: 5px 0; color: var(--ship-color); font-weight: bold; }
-        #turn-info { font-size: 0.9rem; height: 1.2rem; color: var(--hit-color); margin-bottom: 10px; font-weight: bold; }
-        h2 { font-weight: 300; margin: 5px 0; font-size: 0.8rem; letter-spacing: 1px; opacity: 0.6; text-transform: uppercase; }
+        .stats { font-size: 0.85rem; margin-bottom: 5px; color: var(--ship-color); font-weight: bold; min-height: 1.2rem; }
+        #turn-info { font-size: 1rem; height: 1.5rem; color: var(--hit-color); margin-bottom: 15px; font-weight: bold; letter-spacing: 1px; }
+        h2 { font-weight: 400; margin: 5px 0; font-size: 0.7rem; letter-spacing: 2px; opacity: 0.5; text-transform: uppercase; }
         
         .board {
             display: grid; grid-template-columns: repeat(10, 1fr); gap: 1px;
             background-color: var(--grid-color); border: 1px solid var(--grid-color);
-            width: 85vw; max-width: 320px; aspect-ratio: 1 / 1; margin-bottom: 10px;
+            width: 85vw; max-width: 320px; aspect-ratio: 1 / 1; margin-bottom: 15px;
+            box-shadow: 0 0 15px var(--radar-glow); border-radius: 4px; overflow: hidden;
         }
-        .cell { background-color: var(--cell-bg); display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
-        .my-board .cell.ship { background-color: rgba(58, 134, 255, 0.2); }
-        .cell.hit { background-color: var(--hit-color) !important; animation: pop 0.3s ease; }
-        .cell.sunk { background-color: var(--sunk-color) !important; }
-        .cell.miss::after { content: ""; width: 5px; height: 5px; background-color: var(--miss-color); border-radius: 50%; }
+        .cell { background-color: var(--cell-bg); display: flex; align-items: center; justify-content: center; transition: all 0.3s; position: relative; }
+        .cell::before { content: ""; position: absolute; width: 100%; height: 100%; border: 1px solid rgba(58, 134, 255, 0.03); pointer-events: none; }
         
-        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        .my-board .cell.ship { background-color: rgba(58, 134, 255, 0.15); box-shadow: inset 0 0 8px rgba(58, 134, 255, 0.2); }
+        .cell.hit { background-color: var(--hit-color) !important; animation: pop 0.4s ease; box-shadow: 0 0 15px var(--hit-color); z-index: 2; }
+        .cell.sunk { background-color: var(--sunk-color) !important; transform: scale(0.98); }
+        .cell.miss::after { content: ""; width: 6px; height: 6px; background-color: var(--miss-color); border-radius: 50%; opacity: 0.6; }
+        
+        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
 
         button.main-btn { 
-            background: var(--ship-color); border: none; color: white; 
-            padding: 12px 40px; border-radius: 8px; font-weight: bold; cursor: pointer;
-            font-size: 14px; margin-top: 15px;
+            background: linear-gradient(135deg, var(--ship-color), #4cc9f0); border: none; color: white; 
+            padding: 14px 45px; border-radius: 30px; font-weight: bold; cursor: pointer;
+            font-size: 14px; margin-top: 20px; box-shadow: 0 4px 15px rgba(58, 134, 255, 0.3);
+            transition: transform 0.2s;
         }
+        button.main-btn:active { transform: scale(0.95); }
 
         #message-overlay {
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.95); padding: 30px; border-radius: 15px; text-align: center;
-            z-index: 100; border: 2px solid var(--ship-color); width: 80%; max-width: 300px;
+            background: rgba(11, 14, 20, 0.98); padding: 40px; border-radius: 20px; text-align: center;
+            z-index: 100; border: 1px solid var(--ship-color); width: 85%; max-width: 320px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.8);
         }
-        footer { margin-top: auto; padding: 20px 0; text-align: center; font-size: 0.75rem; opacity: 0.4; line-height: 1.5; }
+        footer { margin-top: auto; padding: 25px 0; text-align: center; font-size: 0.7rem; opacity: 0.3; line-height: 1.6; letter-spacing: 1px; }
     </style>
 </head>
 <body>
 
     <div id="message-overlay">
-        <h1 id="win-title">VÕIT!</h1>
-        <p id="win-text"></p>
-        <button class="main-btn" onclick="initGame()">Uus mäng</button>
+        <h1 id="win-title" style="font-size: 2.5rem; margin-bottom: 10px;">VÕIT!</h1>
+        <p id="win-text" style="margin-bottom: 25px;"></p>
+        <button class="main-btn" onclick="initGame()">UUS LAHING</button>
     </div>
 
     <div class="header">
@@ -97,39 +82,53 @@
         <button class="theme-btn" onclick="document.body.classList.toggle('light-mode')">M/V</button>
     </div>
 
-    <div id="turn-info">Sinu kord tulistada</div>
+    <div id="turn-info">Valmis lahinguks?</div>
 
-    <div class="stats" id="enemy-stats">Vastase laevu: 5/5</div>
-    <h2>VASTANE</h2>
+    <div class="stats" id="enemy-stats"></div>
+    <h2>VASTASE RADAR</h2>
     <div id="enemy-board" class="board"></div>
 
-    <div class="stats" id="my-stats">Sinu laevu: 5/5</div>
-    <h2>SINA</h2>
+    <div class="stats" id="my-stats"></div>
+    <h2>SINU LAEVASTIK</h2>
     <div id="my-board" class="board my-board"></div>
 
     <button class="main-btn" onclick="initGame()">ALUSTA MÄNGU</button>
 
-    <footer>Arendaja: Perekond Ojaküla<br>2026 Aprill</footer>
+    <footer>ARENDAJA: PEREKOND OJAKÜLA<br>2026 APRILL</footer>
 
     <script>
         const size = 10;
         let enemyShips, myShips, gameOver, isPlayerTurn;
         let huntStack = [], audioCtx = null;
 
+        // Joonistame tühjad ruudustikud kohe lehe laadimisel
+        function createEmptyBoards() {
+            ['enemy-board', 'my-board'].forEach(id => {
+                const el = document.getElementById(id);
+                el.innerHTML = '';
+                for (let i = 0; i < size * size; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    el.appendChild(cell);
+                }
+            });
+        }
+
         function playSound(type) {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.connect(gain); gain.connect(audioCtx.destination);
             if (type === 'hit') {
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(120, audioCtx.currentTime);
                 osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.2);
                 gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
                 gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
                 osc.start(); osc.stop(audioCtx.currentTime + 0.2);
             } else if (type === 'miss') {
-                osc.type = 'sine'; osc.frequency.setValueAtTime(100, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                osc.type = 'sine'; osc.frequency.setValueAtTime(80, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
                 gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
                 osc.start(); osc.stop(audioCtx.currentTime + 0.1);
             } else if (type === 'win') {
@@ -193,7 +192,7 @@
                 if (data.ships.every(s => s.sunk)) { playSound('win'); showEndGame(true); }
             } else {
                 playSound('miss'); cell.classList.add('miss'); isPlayerTurn = false;
-                document.getElementById('turn-info').innerText = "Vastane mõtleb..."; setTimeout(enemyTurn, 800);
+                document.getElementById('turn-info').innerText = "Vastane sihib..."; setTimeout(enemyTurn, 800);
             }
         }
 
@@ -257,4 +256,20 @@
         function updateStats() {
             const eSunk = enemyShips.ships.filter(s => s.sunk).length;
             const mSunk = myShips.ships.filter(s => s.sunk).length;
-            document.getElementById('enemy-stats').innerText = `Vastasel
+            document.getElementById('enemy-stats').innerText = `VASTASEL UPUTATUD: ${eSunk}/5`;
+            document.getElementById('my-stats').innerText = `SUL UPUTATUD: ${mSunk}/5`;
+        }
+
+        function showEndGame(win) {
+            gameOver = true; const ov = document.getElementById('message-overlay');
+            document.getElementById('win-title').innerText = win ? "VÕIT!" : "KAOTUS...";
+            document.getElementById('win-title').style.color = win ? "var(--ship-color)" : "var(--hit-color)";
+            document.getElementById('win-text').innerText = win ? "Admiral Ojaküla, hiilgav võit!" : "Vastane oli seekord kavalam.";
+            ov.style.display = 'block';
+        }
+
+        // Käivitame tühjad lauad kohe
+        createEmptyBoards();
+    </script>
+</body>
+</html>
