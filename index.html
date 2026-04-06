@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Laevad</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --grid-color: #2c2c2c;
+            --ship-color: #3a86ff;
+            --hit-color: #ff006e;
+            --miss-color: #444;
+            --text-color: #e0e0e0;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 2px;
+            background-color: var(--grid-color);
+            border: 2px solid var(--grid-color);
+            width: 90vw;
+            max-width: 400px;
+            aspect-ratio: 1 / 1;
+        }
+        .cell {
+            background-color: var(--bg-color);
+            cursor: pointer;
+        }
+        .cell.ship { background-color: rgba(58, 134, 255, 0.2); } /* Ajutine vaade */
+        .cell.hit { background-color: var(--hit-color); }
+        .cell.miss { background-color: var(--miss-color); }
+        button {
+            margin-top: 20px;
+            background: transparent;
+            border: 1px solid var(--ship-color);
+            color: var(--ship-color);
+            padding: 12px 24px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>LAEVAD</h1>
+    <div id="board" class="board"></div>
+    <button onclick="initGame()">Uus mäng</button>
+
+    <script>
+        const size = 10;
+        let board = [];
+        function initGame() {
+            const el = document.getElementById('board');
+            el.innerHTML = '';
+            board = Array(size).fill(0).map(() => Array(size).fill(0));
+            [5, 4, 3, 3, 2].forEach(s => place(s));
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell' + (board[r][c] ? ' ship' : '');
+                    cell.onclick = () => {
+                        if (board[r][c] === 1) cell.classList.add('hit');
+                        else cell.classList.add('miss');
+                    };
+                    el.appendChild(cell);
+                }
+            }
+        }
+        function place(s) {
+            let ok = false;
+            while (!ok) {
+                const vert = Math.random() > 0.5;
+                const r = Math.floor(Math.random() * (vert ? size - s : size));
+                const c = Math.floor(Math.random() * (vert ? size : size - s));
+                let free = true;
+                for (let i = -1; i <= s; i++) {
+                    for (let j = -1; j <= 1; j++) {
+                        const rr = vert ? r + i : r + j;
+                        const cc = vert ? c + j : c + i;
+                        if (rr >= 0 && rr < size && cc >= 0 && cc < size && board[rr][cc]) free = false;
+                    }
+                }
+                if (free) {
+                    for (let i = 0; i < s; i++) board[vert ? r + i : r][vert ? c : c + i] = 1;
+                    ok = true;
+                }
+            }
+        }
+        initGame();
+    </script>
+</body>
+</html>
