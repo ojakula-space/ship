@@ -22,16 +22,47 @@
             margin: 0; padding: 10px; transition: background 0.3s;
             user-select: none; min-height: 100vh;
         }
-        .header { display: flex; justify-content: space-between; width: 95vw; max-width: 400px; align-items: center; }
-        .stats { font-size: 0.8rem; margin: 2px 0; color: var(--ship-color); font-weight: bold; }
-        #turn-info { font-size: 0.9rem; height: 1.2rem; color: var(--hit-color); margin: 10px 0; font-weight: bold; }
+        
+        .header { 
+            width: 100%; 
+            max-width: 400px; 
+            text-align: center; 
+            position: relative;
+            margin-bottom: 10px;
+        }
+        
+        h1 { 
+            font-weight: 300; 
+            margin: 10px 0; 
+            font-size: 1.8rem; 
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        .theme-btn { 
+            position: absolute; 
+            right: 0; 
+            top: 50%; 
+            transform: translateY(-50%);
+            background: none; 
+            border: 1px solid var(--text-color); 
+            color: var(--text-color); 
+            font-size: 10px; 
+            padding: 4px 8px;
+            border-radius: 12px;
+            opacity: 0.5;
+        }
+
+        .stats { font-size: 0.85rem; margin: 5px 0; color: var(--ship-color); font-weight: bold; }
+        #turn-info { font-size: 0.9rem; height: 1.2rem; color: var(--hit-color); margin-bottom: 10px; font-weight: bold; }
+        h2 { font-weight: 300; margin: 5px 0; font-size: 0.8rem; letter-spacing: 1px; opacity: 0.6; text-transform: uppercase; }
         
         .board {
             display: grid; grid-template-columns: repeat(10, 1fr); gap: 1px;
             background-color: var(--grid-color); border: 1px solid var(--grid-color);
-            width: 85vw; max-width: 320px; aspect-ratio: 1 / 1; margin-bottom: 8px;
+            width: 85vw; max-width: 320px; aspect-ratio: 1 / 1; margin-bottom: 10px;
         }
-        .cell { background-color: var(--cell-bg); display: flex; align-items: center; justify-content: center; }
+        .cell { background-color: var(--cell-bg); display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
         .my-board .cell.ship { background-color: rgba(58, 134, 255, 0.2); }
         .cell.hit { background-color: var(--hit-color) !important; animation: pop 0.3s ease; }
         .cell.sunk { background-color: var(--sunk-color) !important; }
@@ -39,21 +70,18 @@
         
         @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
 
-        .controls { display: flex; gap: 5px; margin-top: 5px; flex-wrap: wrap; justify-content: center; }
-        button { 
+        button.main-btn { 
             background: var(--ship-color); border: none; color: white; 
-            padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer;
-            font-size: 12px;
+            padding: 12px 40px; border-radius: 8px; font-weight: bold; cursor: pointer;
+            font-size: 14px; margin-top: 15px;
         }
-        .difficulty-btn { background: var(--grid-color); opacity: 0.6; }
-        .difficulty-btn.active { opacity: 1; border: 1px solid white; }
 
         #message-overlay {
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: rgba(0,0,0,0.95); padding: 30px; border-radius: 15px; text-align: center;
             z-index: 100; border: 2px solid var(--ship-color); width: 80%; max-width: 300px;
         }
-        footer { margin-top: auto; padding: 15px 0; text-align: center; font-size: 0.7rem; opacity: 0.4; }
+        footer { margin-top: auto; padding: 20px 0; text-align: center; font-size: 0.75rem; opacity: 0.4; line-height: 1.5; }
     </style>
 </head>
 <body>
@@ -61,49 +89,38 @@
     <div id="message-overlay">
         <h1 id="win-title">VÕIT!</h1>
         <p id="win-text"></p>
-        <button onclick="initGame()">Uus mäng</button>
+        <button class="main-btn" onclick="initGame()">Uus mäng</button>
     </div>
 
     <div class="header">
-        <h1 style="font-weight: 300; margin: 5px 0; font-size: 1.5rem;">LAEVAD</h1>
-        <button style="background:none; border:1px solid var(--text-color); color:var(--text-color); font-size:10px;" onclick="document.body.classList.toggle('light-mode')">M/V</button>
+        <h1>LAEVAD</h1>
+        <button class="theme-btn" onclick="document.body.classList.toggle('light-mode')">M/V</button>
     </div>
 
-    <div class="controls">
-        <button id="diff-0" class="difficulty-btn" onclick="setDiff(0)">KERGE</button>
-        <button id="diff-1" class="difficulty-btn active" onclick="setDiff(1)">KESKMINE</button>
-        <button id="diff-2" class="difficulty-btn" onclick="setDiff(2)">RASKE</button>
-    </div>
+    <div id="turn-info">Sinu kord tulistada</div>
 
-    <div id="turn-info">Vali raskusaste ja alusta</div>
-
-    <div class="stats" id="enemy-stats">Vastane: 5/5</div>
+    <div class="stats" id="enemy-stats">Vastase laevu: 5/5</div>
+    <h2>VASTANE</h2>
     <div id="enemy-board" class="board"></div>
 
-    <div class="stats" id="my-stats">Sina: 5/5</div>
+    <div class="stats" id="my-stats">Sinu laevu: 5/5</div>
+    <h2>SINA</h2>
     <div id="my-board" class="board my-board"></div>
 
-    <button style="margin-top:10px; width: 200px;" onclick="initGame()">ALUSTA UUT MÄNGU</button>
+    <button class="main-btn" onclick="initGame()">ALUSTA MÄNGU</button>
 
     <footer>Arendaja: Perekond Ojaküla<br>2026 Aprill</footer>
 
     <script>
         const size = 10;
-        let enemyShips, myShips, gameOver, isPlayerTurn, difficulty = 1;
+        let enemyShips, myShips, gameOver, isPlayerTurn;
         let huntStack = [], audioCtx = null;
 
-        function setDiff(d) {
-            difficulty = d;
-            document.querySelectorAll('.difficulty-btn').forEach((b, i) => b.classList.toggle('active', i === d));
-        }
-
-        // --- HELI GENERATOR ---
         function playSound(type) {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.connect(gain); gain.connect(audioCtx.destination);
-
             if (type === 'hit') {
                 osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
                 osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.2);
@@ -112,7 +129,6 @@
                 osc.start(); osc.stop(audioCtx.currentTime + 0.2);
             } else if (type === 'miss') {
                 osc.type = 'sine'; osc.frequency.setValueAtTime(100, audioCtx.currentTime);
-                osc.frequency.linearRampToValueAtTime(50, audioCtx.currentTime + 0.1);
                 gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
                 gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
                 osc.start(); osc.stop(audioCtx.currentTime + 0.1);
@@ -209,19 +225,15 @@
         function enemyTurn() {
             if (gameOver) return;
             let r, c;
-            if (difficulty > 0 && huntStack.length > 0) {
+            if (huntStack.length > 0) {
                 const next = huntStack.pop(); r = next.r; c = next.c;
             } else {
-                do {
-                    r = Math.floor(Math.random() * size); c = Math.floor(Math.random() * size);
-                    // Raske tase kasutab malelaua mustrit (ainult paaris ruudud), et kiiremini laevu leida
-                    if (difficulty === 2 && (r + c) % 2 !== 0 && Math.random() > 0.3) continue; 
-                } while (isInvalid(r, c));
+                do { r = Math.floor(Math.random() * size); c = Math.floor(Math.random() * size); } while (isInvalid(r, c));
             }
             const cell = document.getElementById('my-board').children[r * size + c];
             if (myShips.board[r][c] === 1) {
                 playSound('hit'); handleHit(r, c, myShips, 'my-board');
-                if (difficulty > 0) addNeighbors(r, c);
+                addNeighbors(r, c);
                 if (myShips.ships.every(s => s.sunk)) showEndGame(false);
                 else setTimeout(enemyTurn, 800);
             } else {
@@ -245,16 +257,4 @@
         function updateStats() {
             const eSunk = enemyShips.ships.filter(s => s.sunk).length;
             const mSunk = myShips.ships.filter(s => s.sunk).length;
-            document.getElementById('enemy-stats').innerText = `Vastasel uputatud: ${eSunk}/5`;
-            document.getElementById('my-stats').innerText = `Sul uputatud: ${mSunk}/5`;
-        }
-
-        function showEndGame(win) {
-            gameOver = true; const ov = document.getElementById('message-overlay');
-            document.getElementById('win-title').innerText = win ? "VÕIT!" : "KAOTUS...";
-            document.getElementById('win-text').innerText = win ? "Admiral Ojaküla, võit on teie!" : "Seekord jäi peale arvuti.";
-            ov.style.display = 'block';
-        }
-    </script>
-</body>
-</html>
+            document.getElementById('enemy-stats').innerText = `Vastasel
