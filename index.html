@@ -15,7 +15,7 @@
             --miss-color: #64748b;
             --text-color: #f1f5f9; 
             --cell-bg: #0f172a; 
-            --accent-glow: rgba(56, 189, 248, 0.25);
+            --accent-glow: rgba(56, 189, 248, 0.3);
         }
         body {
             background: radial-gradient(circle at top, var(--bg-grad-2) 0%, var(--bg-grad-1) 100%);
@@ -27,38 +27,44 @@
         
         h1 { font-weight: 200; margin: 15px 0 5px 0; font-size: 2rem; letter-spacing: 6px; text-transform: uppercase; color: var(--ship-color); text-shadow: 0 0 15px var(--accent-glow); }
         
-        .score-board { display: flex; justify-content: center; gap: 20px; font-size: 0.7rem; margin: 10px 0; }
-        .score-item { background: rgba(30, 41, 59, 0.5); padding: 8px 15px; border-radius: 10px; border: 1px solid var(--grid-line); }
-        .score-val { color: var(--ship-color); font-weight: bold; font-size: 1.1rem; margin-left: 5px; }
+        .score-board { display: flex; justify-content: center; gap: 15px; margin: 10px 0; }
+        .score-item { background: rgba(30, 41, 59, 0.6); padding: 10px 20px; border-radius: 12px; border: 1px solid var(--grid-line); text-align: center; font-size: 0.7rem; }
+        .score-val { color: var(--ship-color); font-weight: bold; font-size: 1.2rem; display: block; }
 
         .board {
-            display: grid; grid-template-columns: repeat(10, 1fr);
-            width: 85vw; max-width: 320px; aspect-ratio: 1 / 1; margin-bottom: 20px;
-            background-color: var(--grid-line); border: 1px solid var(--grid-line);
-            border-radius: 6px; overflow: hidden;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5), 0 0 10px var(--accent-glow);
+            display: grid; 
+            grid-template-columns: repeat(10, 1fr);
+            grid-template-rows: repeat(10, 1fr);
+            width: 85vw; max-width: 320px; aspect-ratio: 1 / 1; 
+            margin: 10px 0 20px 0;
+            background-color: var(--grid-line); /* See loob ruudustiku jooned */
+            gap: 1px; /* Joonte laius */
+            border: 1px solid var(--grid-line);
+            border-radius: 8px; overflow: hidden;
+            box-shadow: 0 0 25px rgba(0,0,0,0.5), 0 0 15px var(--accent-glow);
         }
         .cell { 
             background-color: var(--cell-bg); 
             display: flex; align-items: center; justify-content: center; 
-            position: relative; border: 0.1px solid rgba(255,255,255,0.02);
+            position: relative; width: 100%; height: 100%;
         }
-        .cell.ship { background-color: rgba(56, 189, 248, 0.25); }
-        .cell.hit { background-color: var(--hit-color) !important; }
+        .cell.ship { background-color: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.3); }
+        .cell.hit { background-color: var(--hit-color) !important; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
         .cell.sunk { background-color: var(--sunk-color) !important; }
-        .cell.miss::after { content: ""; width: 4px; height: 4px; background-color: var(--miss-color); border-radius: 50%; }
+        .cell.miss::after { content: ""; width: 5px; height: 5px; background-color: var(--miss-color); border-radius: 50%; opacity: 0.5; }
 
         #setup-controls { 
-            display: none; background: rgba(15, 23, 42, 0.9); padding: 15px; 
+            display: none; background: rgba(15, 23, 42, 0.95); padding: 15px; 
             border-radius: 15px; margin-bottom: 15px; border: 1px solid var(--ship-color);
-            text-align: center; width: 85vw; max-width: 320px;
+            text-align: center; width: 85vw; max-width: 320px; box-shadow: 0 0 20px var(--accent-glow);
         }
 
         .btn-group { display: flex; flex-direction: column; gap: 10px; width: 85vw; max-width: 320px; }
         button.main-btn { 
             background: linear-gradient(135deg, #38bdf8, #2563eb); border: none; color: white; 
-            padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer;
+            padding: 16px; border-radius: 14px; font-weight: bold; cursor: pointer;
             font-size: 13px; text-transform: uppercase; letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
         }
         button.sec-btn { background: rgba(30, 41, 59, 0.5); border: 1px solid var(--grid-line); color: var(--text-color); padding: 12px; border-radius: 12px; font-size: 12px; cursor: pointer; }
 
@@ -66,6 +72,7 @@
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(2, 6, 23, 0.95); z-index: 100; flex-direction: column; align-items: center; justify-content: center;
         }
+        h2 { font-size: 0.7rem; color: var(--ship-color); opacity: 0.8; letter-spacing: 2px; text-transform: uppercase; margin: 5px 0; }
     </style>
 </head>
 <body>
@@ -83,74 +90,81 @@
     </div>
 
     <div id="setup-controls">
-        <div style="font-size: 0.8rem; margin-bottom: 10px; color: var(--ship-color);">Paiguta: <span id="current-ship-name" style="font-weight:bold;">Lennukikandja (5)</span></div>
+        <div style="font-size: 0.9rem; margin-bottom: 12px; color: var(--text-color);">Aseta: <span id="current-ship-name" style="color:var(--ship-color); font-weight:bold;">Lennukikandja (5)</span></div>
         <button class="main-btn" style="width: 100%; margin-bottom: 10px;" onclick="cycleMode()" id="mode-btn">SUUND: HORISONTAALNE</button>
+        <div style="font-size: 0.7rem; opacity: 0.6;">Klikka laual laeva nina asukohale</div>
     </div>
 
-    <div id="turn-info" style="margin: 10px 0; font-weight: bold; color: var(--hit-color);">Vali režiim</div>
+    <div id="turn-info" style="margin: 15px 0; font-weight: bold; color: #fb7185; height: 1.2rem;">VALI REŽIIM</div>
 
     <div id="game-area" style="display:none;">
-        <h2 style="font-size: 0.65rem; color: var(--miss-color);">VASTASE RADAR</h2>
+        <h2>VASTASE RADAR</h2>
         <div id="enemy-board" class="board"></div>
     </div>
 
-    <h2 id="my-label" style="font-size: 0.65rem; color: var(--miss-color);">SINU LAEVASTIK</h2>
+    <h2 id="my-label">SINU LAEVASTIK</h2>
     <div id="my-board" class="board"></div>
 
     <div id="menu-btns" class="btn-group">
         <button class="main-btn" onclick="startGame(true)">KIIRE LAHING (AUTO)</button>
-        <button class="sec-btn" onclick="startSetup()">ASETA LAEVAD ISE</button>
+        <button class="sec-btn" onclick="startSetup()">ASETA LAEVAD ISE (DIAGONAALIGA)</button>
     </div>
 
     <script>
         const size = 10;
         const shipSizes = [5, 4, 3, 3, 2];
-        let enemyShips, myShips, gameOver, isPlayerTurn;
+        let enemyShips, myShips, gameOver = false, isPlayerTurn = true;
         let setupMode = false, currentShipIdx = 0;
-        let placementMode = 0; // 0: Horisontaalne, 1: Vertikaalne, 2: Diagonaalne
+        let placementMode = 0; // 0: Hor, 1: Vert, 2: Diag
         
+        let wins = parseInt(localStorage.getItem('ojakula-wins')) || 0;
+        let losses = parseInt(localStorage.getItem('ojakula-losses')) || 0;
+
+        function updateScore() {
+            document.getElementById('wins').innerText = wins;
+            document.getElementById('losses').innerText = losses;
+        }
+
         function cycleMode() {
             placementMode = (placementMode + 1) % 3;
-            const btn = document.getElementById('mode-btn');
             const modes = ["SUUND: HORISONTAALNE", "SUUND: VERTIKAALNE", "SUUND: DIAGONAALNE"];
-            btn.innerText = modes[placementMode];
+            document.getElementById('mode-btn').innerText = modes[placementMode];
         }
 
         function startSetup() {
             setupMode = true;
             currentShipIdx = 0;
-            myShips = { board: Array(size).fill(0).map(() => Array(size).fill(0)), ships: [] };
+            myShips = { board: Array(size * size).fill(0), ships: [] };
             document.getElementById('menu-btns').style.display = 'none';
             document.getElementById('setup-controls').style.display = 'block';
-            renderSetupBoard();
+            document.getElementById('turn-info').innerText = "PAIGUTAMINE...";
+            renderEmptyBoard('my-board');
         }
 
-        function renderSetupBoard() {
-            const el = document.getElementById('my-board');
+        function renderEmptyBoard(id) {
+            const el = document.getElementById(id);
             el.innerHTML = '';
-            for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) {
+            for (let i = 0; i < size * size; i++) {
                 const cell = document.createElement('div');
                 cell.className = 'cell';
-                if (myShips.board[r][c] === 1) cell.classList.add('ship');
-                cell.onclick = () => placeShipManual(r, c);
+                cell.onclick = () => setupMode && placeShipManual(Math.floor(i/size), i%size);
                 el.appendChild(cell);
             }
         }
 
-        function canPlace(r, c, s, mode, board) {
+        function canPlace(r, c, s, mode, boardArray) {
             for (let i = 0; i < s; i++) {
                 let rr = r, cc = c;
-                if (mode === 0) cc += i;      // Horisontaalne
-                else if (mode === 1) rr += i; // Vertikaalne
-                else { rr += i; cc += i; }    // Diagonaalne (pildil näidatud suund)
+                if (mode === 0) cc += i;
+                else if (mode === 1) rr += i;
+                else { rr += i; cc += i; }
 
-                if (rr >= size || cc >= size || board[rr][cc] === 1) return false;
+                if (rr >= size || cc >= size || boardArray[rr * size + cc] === 1) return false;
                 
-                // Kontrollime ka ümbrust (et laevad ei puutuks kokku)
                 for (let x = -1; x <= 1; x++) {
                     for (let y = -1; y <= 1; y++) {
                         let nr = rr + x, nc = cc + y;
-                        if (nr >= 0 && nr < size && nc >= 0 && nc < size && board[nr][nc] === 1) return false;
+                        if (nr >= 0 && nr < size && nc >= 0 && nc < size && boardArray[nr * size + nc] === 1) return false;
                     }
                 }
             }
@@ -163,52 +177,50 @@
                 const coords = [];
                 for (let i = 0; i < s; i++) {
                     let rr = r, cc = c;
-                    if (placementMode === 0) cc += i;
-                    else if (placementMode === 1) rr += i;
-                    else { rr += i; cc += i; }
-                    
-                    myShips.board[rr][cc] = 1;
+                    if (placementMode === 0) cc += i; else if (placementMode === 1) rr += i; else { rr += i; cc += i; }
+                    myShips.board[rr * size + cc] = 1;
                     coords.push({r: rr, c: cc, hit: false});
+                    document.getElementById('my-board').children[rr * size + cc].classList.add('ship');
                 }
                 myShips.ships.push({coords, sunk: false});
                 currentShipIdx++;
                 if (currentShipIdx >= shipSizes.length) {
-                    setupMode = false;
                     document.getElementById('setup-controls').style.display = 'none';
                     startGame(false);
                 } else {
                     document.getElementById('current-ship-name').innerText = `Laev (${shipSizes[currentShipIdx]})`;
-                    renderSetupBoard();
                 }
-            }
+            } else if (navigator.vibrate) navigator.vibrate(50);
         }
 
-        // Ülejäänud mänguloogika (startGame, render, shoot, markSurroundings jne) jääb samaks...
-        // (Lühendatud siin, et kood oleks loetav)
         function startGame(auto) {
+            setupMode = false;
             document.getElementById('menu-btns').style.display = 'none';
             document.getElementById('game-area').style.display = 'block';
+            if (auto) {
+                myShips = placeShipsAuto();
+                renderBoard('my-board', myShips, false);
+            }
             enemyShips = placeShipsAuto();
-            if (auto) myShips = placeShipsAuto();
-            render('enemy-board', enemyShips, true);
-            render('my-board', myShips, false);
-            document.getElementById('turn-info').innerText = "Sinu kord";
+            renderBoard('enemy-board', enemyShips, true);
+            document.getElementById('turn-info').innerText = "SINU KORD TULISTADA";
+            updateScore();
         }
 
         function placeShipsAuto() {
-            const board = Array(size).fill(0).map(() => Array(size).fill(0));
+            const board = Array(size * size).fill(0);
             const ships = [];
             shipSizes.forEach(s => {
                 let ok = false;
                 while (!ok) {
-                    const mode = Math.floor(Math.random() * 3); // Nüüd ka arvuti võib diagonaalselt panna!
+                    const mode = Math.floor(Math.random() * 3);
                     const r = Math.floor(Math.random() * size), c = Math.floor(Math.random() * size);
                     if (canPlace(r, c, s, mode, board)) {
                         const coords = [];
                         for (let i = 0; i < s; i++) {
                             let rr = r, cc = c;
                             if (mode === 0) cc += i; else if (mode === 1) rr += i; else { rr += i; cc += i; }
-                            board[rr][cc] = 1; coords.push({r: rr, c: cc, hit: false});
+                            board[rr * size + cc] = 1; coords.push({r: rr, c: cc, hit: false});
                         }
                         ships.push({coords, sunk: false}); ok = true;
                     }
@@ -217,68 +229,82 @@
             return {board, ships};
         }
 
-        function render(id, data, isEnemy) {
-            const el = document.getElementById(id); el.innerHTML = '';
-            for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) {
-                const cell = document.createElement('div'); cell.className = 'cell';
-                if (data.board[r][c] === 1 && !isEnemy) cell.classList.add('ship');
-                cell.onclick = () => isEnemy && userShoot(r, c, cell, data);
+        function renderBoard(id, data, isEnemy) {
+            const el = document.getElementById(id);
+            el.innerHTML = '';
+            for (let i = 0; i < size * size; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                if (!isEnemy && data.board[i] === 1) cell.classList.add('ship');
+                cell.onclick = () => isEnemy && !gameOver && isPlayerTurn && userShoot(i, cell, data);
                 el.appendChild(cell);
             }
         }
 
-        function userShoot(r, c, cell, data) {
+        function userShoot(i, cell, data) {
             if (cell.classList.contains('hit') || cell.classList.contains('miss')) return;
-            if (data.board[r][c] === 1) {
-                handleHit(r, c, data, 'enemy-board');
-                if (data.ships.every(s => s.sunk)) showEndGame(true);
+            if (data.board[i] === 1) {
+                cell.classList.add('hit');
+                const r = Math.floor(i/size), c = i%size;
+                checkSinking(r, c, data, 'enemy-board');
+                if (data.ships.every(s => s.sunk)) { wins++; localStorage.setItem('ojakula-wins', wins); showEndGame(true); }
             } else {
                 cell.classList.add('miss');
-                setTimeout(enemyTurn, 600);
+                isPlayerTurn = false;
+                document.getElementById('turn-info').innerText = "VASTANE MÕTLEB...";
+                setTimeout(enemyTurn, 800);
             }
         }
 
-        function handleHit(r, c, data, boardId) {
+        function checkSinking(r, c, data, boardId) {
             const ship = data.ships.find(s => s.coords.some(co => co.r === r && co.c === c));
             ship.coords.find(co => co.r === r && co.c === c).hit = true;
-            document.getElementById(boardId).children[r * size + c].classList.add('hit');
             if (ship.coords.every(co => co.hit)) {
                 ship.sunk = true;
                 ship.coords.forEach(co => {
-                    document.getElementById(boardId).children[co.r * size + co.c].classList.replace('hit', 'sunk');
-                    markSurroundings(co.r, co.c, boardId);
+                    const idx = co.r * size + co.c;
+                    document.getElementById(boardId).children[idx].classList.add('sunk');
+                    // Mark surroundings
+                    for(let x=-1; x<=1; x++) for(let y=-1; y<=1; y++) {
+                        let nr = co.r+x, nc = co.c+y;
+                        if(nr>=0 && nr<size && nc>=0 && nc<size) {
+                            const nIdx = nr*size+nc;
+                            const nCell = document.getElementById(boardId).children[nIdx];
+                            if(!nCell.classList.contains('hit')) nCell.classList.add('miss');
+                        }
+                    }
                 });
             }
         }
 
-        function markSurroundings(r, c, boardId) {
-            for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
-                const rr = r + i, cc = c + j;
-                if (rr >= 0 && rr < size && cc >= 0 && cc < size) {
-                    const cell = document.getElementById(boardId).children[rr * size + cc];
-                    if (!cell.classList.contains('hit') && !cell.classList.contains('sunk')) cell.classList.add('miss');
-                }
+        function enemyTurn() {
+            if (gameOver) return;
+            let i;
+            const boardEl = document.getElementById('my-board');
+            do { i = Math.floor(Math.random() * size * size); } 
+            while (boardEl.children[i].classList.contains('hit') || boardEl.children[i].classList.contains('miss'));
+            
+            if (myShips.board[i] === 1) {
+                boardEl.children[i].classList.add('hit');
+                checkSinking(Math.floor(i/size), i%size, myShips, 'my-board');
+                if (myShips.ships.every(s => s.sunk)) { losses++; localStorage.setItem('ojakula-losses', losses); showEndGame(false); }
+                else setTimeout(enemyTurn, 800);
+            } else {
+                boardEl.children[i].classList.add('miss');
+                isPlayerTurn = true;
+                document.getElementById('turn-info').innerText = "SINU KORD!";
             }
         }
 
-        function enemyTurn() {
-            let r, c;
-            const board = document.getElementById('my-board');
-            do { r = Math.floor(Math.random() * size); c = Math.floor(Math.random() * size); } 
-            while (board.children[r * size + c].classList.contains('hit') || board.children[r * size + c].classList.contains('miss'));
-            
-            if (myShips.board[r][c] === 1) {
-                handleHit(r, c, myShips, 'my-board');
-                if (myShips.ships.every(s => s.sunk)) showEndGame(false);
-                else setTimeout(enemyTurn, 600);
-            } else board.children[r * size + c].classList.add('miss');
-        }
-
         function showEndGame(win) {
+            gameOver = true;
             const ov = document.getElementById('message-overlay');
             document.getElementById('win-title').innerText = win ? "VÕIT!" : "KAOTUS";
             ov.style.display = 'flex';
         }
+
+        updateScore();
+        renderEmptyBoard('my-board');
     </script>
 </body>
 </html>
