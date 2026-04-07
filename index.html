@@ -6,16 +6,10 @@
     <title>Laevad</title>
     <style>
         :root {
-            --bg-grad-1: #0f172a; 
-            --bg-grad-2: #1e293b;
-            /* UUS: Palju heledam ja selgem ruudustiku värv */
-            --grid-color: #64748b; 
-            --ship-color: #38bdf8;
-            --hit-color: #fb7185; 
-            --sunk-color: #c084fc; 
-            --miss-color: #94a3b8;
-            --text-color: #f1f5f9; 
-            --cell-bg: rgba(15, 23, 42, 0.7); 
+            --bg-grad-1: #0f172a; --bg-grad-2: #1e293b;
+            --grid-color: #64748b; --ship-color: #38bdf8;
+            --hit-color: #fb7185; --sunk-color: #c084fc; --miss-color: #94a3b8;
+            --text-color: #f1f5f9; --cell-bg: rgba(15, 23, 42, 0.7); 
             --radar-glow: rgba(56, 189, 248, 0.2);
         }
         body.light-mode {
@@ -26,113 +20,104 @@
         }
         body {
             background: linear-gradient(180deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
-            color: var(--text-color);
-            font-family: -apple-system, system-ui, sans-serif;
+            color: var(--text-color); font-family: -apple-system, system-ui, sans-serif;
             display: flex; flex-direction: column; align-items: center;
             margin: 0; padding: 10px; transition: all 0.3s ease;
             user-select: none; min-height: 100vh;
         }
         
-        .header { width: 100%; max-width: 400px; text-align: center; position: relative; margin-bottom: 5px; }
+        .header { width: 100%; max-width: 400px; text-align: center; position: relative; }
         h1 { font-weight: 200; margin: 15px 0 5px 0; font-size: 2.2rem; letter-spacing: 8px; text-transform: uppercase; color: var(--ship-color); text-shadow: 0 0 15px var(--radar-glow); }
 
-        .score-board {
-            display: flex; justify-content: center; gap: 35px; font-size: 0.7rem; 
-            letter-spacing: 1.5px; opacity: 1; margin: 15px 0; width: 100%;
-        }
+        .score-board { display: flex; justify-content: center; gap: 35px; font-size: 0.7rem; letter-spacing: 1.5px; margin: 10px 0; }
         .score-item { display: flex; flex-direction: column; align-items: center; background: rgba(255,255,255,0.03); padding: 8px 15px; border-radius: 12px; }
-        .score-val { color: var(--ship-color); font-weight: bold; font-size: 1.3rem; margin-top: 2px; }
-        .loss-val { color: var(--hit-color); }
-
-        .theme-btn { 
-            position: absolute; right: 0; top: 15px;
-            background: rgba(255,255,255,0.05); border: 1px solid var(--text-color); color: var(--text-color); 
-            font-size: 9px; padding: 4px 8px; border-radius: 10px; opacity: 0.5; cursor: pointer;
+        .score-val { color: var(--ship-color); font-weight: bold; font-size: 1.3rem; }
+        
+        #setup-controls { 
+            display: none; background: rgba(56, 189, 248, 0.1); padding: 10px; 
+            border-radius: 15px; margin-bottom: 10px; border: 1px solid var(--ship-color);
+            text-align: center; width: 82vw; max-width: 310px;
         }
 
-        #turn-info { font-size: 1rem; height: 1.5rem; color: var(--hit-color); margin: 15px 0; font-weight: bold; text-shadow: 0 0 10px rgba(251, 113, 133, 0.3); }
+        #turn-info { font-size: 1rem; height: 1.5rem; color: var(--hit-color); margin: 10px 0; font-weight: bold; }
         h2 { font-weight: 500; margin: 10px 0; font-size: 0.75rem; letter-spacing: 2px; color: var(--miss-color); text-transform: uppercase; }
         
         .board {
             display: grid; grid-template-columns: repeat(10, 1fr); gap: 1px;
-            /* Jooned on nüüd selged ja heledad */
             background-color: var(--grid-color); border: 1px solid var(--grid-color);
             width: 82vw; max-width: 310px; aspect-ratio: 1 / 1; margin-bottom: 15px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.3); border-radius: 8px;
-            backdrop-filter: blur(5px);
         }
-        .cell { 
-            background-color: var(--cell-bg); 
-            display: flex; align-items: center; justify-content: center; 
-            /* UUS: Igal kasti elemendil on ka oma õrn piirjoon veelgi paremaks eristamiseks */
-            border: 0.5px solid rgba(255,255,255,0.03); 
-        }
-        .my-board .cell.ship { background-color: rgba(56, 189, 248, 0.15); box-shadow: inset 0 0 10px var(--radar-glow); }
-        .cell.hit { background-color: var(--hit-color) !important; animation: pop 0.4s ease; box-shadow: 0 0 15px var(--hit-color); }
-        .cell.sunk { background-color: var(--sunk-color) !important; box-shadow: 0 0 15px var(--sunk-color); }
+        .cell { background-color: var(--cell-bg); display: flex; align-items: center; justify-content: center; border: 0.5px solid rgba(255,255,255,0.03); }
+        .cell.ship { background-color: rgba(56, 189, 248, 0.4); box-shadow: inset 0 0 10px var(--radar-glow); }
+        .cell.preview { background-color: rgba(56, 189, 248, 0.2); }
+        .cell.invalid { background-color: rgba(251, 113, 133, 0.3); }
+        .cell.hit { background-color: var(--hit-color) !important; box-shadow: 0 0 15px var(--hit-color); }
+        .cell.sunk { background-color: var(--sunk-color) !important; }
         .cell.miss::after { content: ""; width: 5px; height: 5px; background-color: var(--miss-color); border-radius: 50%; opacity: 0.5; }
         
-        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
-
+        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
         button.main-btn { 
             background: linear-gradient(135deg, var(--ship-color), #818cf8); border: none; color: white; 
-            padding: 15px 55px; border-radius: 30px; font-weight: bold; cursor: pointer;
-            font-size: 14px; margin-top: 10px; box-shadow: 0 10px 20px rgba(56, 189, 248, 0.3);
-            text-transform: uppercase; letter-spacing: 1px; transition: all 0.2s;
+            padding: 12px 30px; border-radius: 30px; font-weight: bold; cursor: pointer;
+            font-size: 13px; text-transform: uppercase; letter-spacing: 1px;
         }
-        button.main-btn:active { transform: translateY(2px); box-shadow: 0 5px 10px rgba(56, 189, 248, 0.2); }
+        button.sec-btn { background: none; border: 1px solid var(--ship-color); color: var(--ship-color); padding: 10px 25px; border-radius: 30px; font-size: 12px; cursor: pointer; }
 
         #message-overlay {
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(15, 23, 42, 0.95); padding: 40px; border-radius: 25px; text-align: center;
-            z-index: 100; border: 1px solid var(--ship-color); width: 85%; max-width: 320px;
-            backdrop-filter: blur(10px); box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            background: rgba(15, 23, 42, 0.98); padding: 40px; border-radius: 25px; text-align: center;
+            z-index: 100; border: 1px solid var(--ship-color); width: 85%; max-width: 320px; backdrop-filter: blur(10px);
         }
         
-        .reset-score { font-size: 9px; opacity: 0.4; margin-top: 20px; cursor: pointer; text-decoration: none; letter-spacing: 1px; padding: 5px 10px; border: 0.5px solid var(--miss-color); border-radius: 5px; }
-        footer { margin-top: auto; padding: 25px 0; text-align: center; font-size: 0.65rem; opacity: 0.4; letter-spacing: 2px; color: var(--miss-color); }
+        .reset-score { font-size: 9px; opacity: 0.4; margin-top: 20px; cursor: pointer; border: 0.5px solid var(--miss-color); border-radius: 5px; padding: 4px; }
+        footer { margin-top: auto; padding: 20px 0; text-align: center; font-size: 0.6rem; opacity: 0.4; letter-spacing: 2px; }
     </style>
 </head>
 <body>
+
     <div id="message-overlay">
         <h1 id="win-title">VÕIT!</h1>
         <p id="win-text" style="margin-bottom: 25px;"></p>
-        <button class="main-btn" onclick="initGame()">UUS LAHING</button>
+        <button class="main-btn" onclick="location.reload()">PEAMENÜÜ</button>
     </div>
 
     <div class="header">
         <h1>LAEVAD</h1>
-        <button class="theme-btn" onclick="document.body.classList.toggle('light-mode')">M/V</button>
         <div class="score-board">
-            <div class="score-item">
-                <span>VÕIDUD</span>
-                <span id="wins" class="score-val">0</span>
-            </div>
-            <div class="score-item">
-                <span>KAOTUSED</span>
-                <span id="losses" class="score-val loss-val">0</span>
-            </div>
+            <div class="score-item"><span>VÕIDUD</span><span id="wins" class="score-val">0</span></div>
+            <div class="score-item"><span>KAOTUSED</span><span id="losses" class="score-val" style="color:var(--hit-color)">0</span></div>
         </div>
     </div>
 
-    <div id="turn-info">Valmis lahinguks</div>
+    <div id="setup-controls">
+        <div style="font-size: 0.8rem; margin-bottom: 8px;">Aseta: <span id="current-ship-name" style="color:var(--ship-color); font-weight:bold;">Lennukikandja (5)</span></div>
+        <button class="sec-btn" onclick="toggleRotation()" id="rot-btn">SUUND: HORISONTAALNE</button>
+    </div>
 
-    <h2>VASTASE RADAR</h2>
-    <div id="enemy-board" class="board"></div>
+    <div id="turn-info">Vali mängurežiim</div>
+
+    <div id="game-area" style="display:none;">
+        <h2 id="enemy-label">VASTASE RADAR</h2>
+        <div id="enemy-board" class="board"></div>
+    </div>
 
     <h2>SINU LAEVASTIK</h2>
-    <div id="my-board" class="board my-board"></div>
+    <div id="my-board" class="board"></div>
 
-    <button class="main-btn" onclick="initGame()">ALUSTA MÄNGU</button>
+    <div id="menu-btns" class="btn-group">
+        <button class="main-btn" onclick="startGame(true)">ALUSTA MÄNGU (AUTO)</button>
+        <button class="sec-btn" onclick="startSetup()">ASETA ISE</button>
+    </div>
+
     <div class="reset-score" onclick="resetScore()">NULLI SKOOR</div>
-
-    <footer>ARENDAJA: PEREKOND OJAKÜLA<br>2026 APRILL</footer>
+    <footer>ARENDAJA: PEREKOND OJAKÜLA<br>2026</footer>
 
     <script>
-        // Kogu JavaScript jääb samaks
         const size = 10;
+        const shipSizes = [5, 4, 3, 3, 2];
         let enemyShips, myShips, gameOver, isPlayerTurn;
-        let huntStack = [], audioCtx = null;
+        let setupMode = false, currentShipIdx = 0, isVertical = false;
         let wins = parseInt(localStorage.getItem('ojakula-wins')) || 0;
         let losses = parseInt(localStorage.getItem('ojakula-losses')) || 0;
 
@@ -142,61 +127,122 @@
         }
 
         function resetScore() {
-            if(confirm("Kas soovid skoori nullida?")) {
+            if(confirm("Nulli skoor?")) {
                 wins = 0; losses = 0;
-                localStorage.setItem('ojakula-wins', 0);
-                localStorage.setItem('ojakula-losses', 0);
+                localStorage.setItem('ojakula-wins', 0); localStorage.setItem('ojakula-losses', 0);
                 updateScoreDisplay();
             }
         }
 
         function vibrate(ms) { if (navigator.vibrate) navigator.vibrate(ms); }
 
-        function playSound(type) {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            if (type === 'hit') {
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(120, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.15);
-                vibrate(40);
-            } else if (type === 'miss') {
-                osc.type = 'sine'; osc.frequency.setValueAtTime(80, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-            } else if (type === 'sunk') { vibrate([80, 40, 80]); }
+        function startSetup() {
+            setupMode = true;
+            currentShipIdx = 0;
+            myShips = { board: Array(size).fill(0).map(() => Array(size).fill(0)), ships: [] };
+            document.getElementById('menu-btns').style.display = 'none';
+            document.getElementById('setup-controls').style.display = 'block';
+            document.getElementById('turn-info').innerText = "Paiguta oma laevad";
+            renderSetupBoard();
         }
 
-        function initGame() {
-            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-            document.getElementById('message-overlay').style.display = 'none';
-            gameOver = false; isPlayerTurn = true; huntStack = [];
+        function toggleRotation() {
+            isVertical = !isVertical;
+            document.getElementById('rot-btn').innerText = isVertical ? "SUUND: VERTIKAALNE" : "SUUND: HORISONTAALNE";
+        }
+
+        function renderSetupBoard() {
+            const el = document.getElementById('my-board');
+            el.innerHTML = '';
+            for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                if (myShips.board[r][c] === 1) cell.classList.add('ship');
+                
+                cell.onmouseover = () => previewShip(r, c, true);
+                cell.onmouseout = () => previewShip(r, c, false);
+                cell.onclick = () => placeShipManual(r, c);
+                el.appendChild(cell);
+            }
+        }
+
+        function previewShip(r, c, show) {
+            if (!setupMode) return;
+            const s = shipSizes[currentShipIdx];
+            const cells = document.getElementById('my-board').children;
+            for (let i = 0; i < s; i++) {
+                const rr = isVertical ? r + i : r, cc = isVertical ? c : c + i;
+                if (rr < size && cc < size) {
+                    const idx = rr * size + cc;
+                    if (show) cells[idx].classList.add('preview');
+                    else cells[idx].classList.remove('preview');
+                }
+            }
+        }
+
+        function placeShipManual(r, c) {
+            const s = shipSizes[currentShipIdx];
+            if (canPlace(r, c, s, isVertical, myShips.board)) {
+                const coords = [];
+                for (let i = 0; i < s; i++) {
+                    const rr = isVertical ? r + i : r, cc = isVertical ? c : c + i;
+                    myShips.board[rr][cc] = 1;
+                    coords.push({r: rr, c: cc, hit: false});
+                }
+                myShips.ships.push({coords, sunk: false});
+                currentShipIdx++;
+                if (currentShipIdx >= shipSizes.length) {
+                    setupMode = false;
+                    document.getElementById('setup-controls').style.display = 'none';
+                    startGame(false);
+                } else {
+                    document.getElementById('current-ship-name').innerText = `Laev pikkusega (${shipSizes[currentShipIdx]})`;
+                    renderSetupBoard();
+                }
+            } else {
+                vibrate(100);
+            }
+        }
+
+        function canPlace(r, c, s, vert, board) {
+            if (vert && r + s > size) return false;
+            if (!vert && c + s > size) return false;
+            for (let i = -1; i <= s; i++) {
+                for (let j = -1; j <= 1; j++) {
+                    const rr = vert ? r + i : r + j;
+                    const cc = vert ? c + j : c + i;
+                    if (rr >= 0 && rr < size && cc >= 0 && cc < size && board[rr][cc]) return false;
+                }
+            }
+            return true;
+        }
+
+        function startGame(auto) {
+            document.getElementById('menu-btns').style.display = 'none';
+            document.getElementById('game-area').style.display = 'block';
+            gameOver = false; isPlayerTurn = true;
+            enemyShips = placeShipsAuto();
+            if (auto) myShips = placeShipsAuto();
+            
+            render('enemy-board', enemyShips, true);
+            render('my-board', myShips, false);
             document.getElementById('turn-info').innerText = "Sinu kord tulistada";
-            enemyShips = placeAllShips(); myShips = placeAllShips();
-            render('enemy-board', enemyShips, true); render('my-board', myShips, false);
             updateScoreDisplay();
         }
 
-        function placeAllShips() {
+        function placeShipsAuto() {
             const board = Array(size).fill(0).map(() => Array(size).fill(0));
             const ships = [];
-            [5, 4, 3, 3, 2].forEach(s => {
+            shipSizes.forEach(s => {
                 let ok = false;
                 while (!ok) {
-                    const vert = Math.random() > 0.5, r = Math.floor(Math.random() * (vert ? size - s : size)), c = Math.floor(Math.random() * (vert ? size : size - s));
-                    let free = true;
-                    for (let i = -1; i <= s; i++) for (let j = -1; j <= 1; j++) {
-                        const rr = vert ? r + i : r + j, cc = vert ? c + j : c + i;
-                        if (rr >= 0 && rr < size && cc >= 0 && cc < size && board[rr][cc]) free = false;
-                    }
-                    if (free) {
+                    const vert = Math.random() > 0.5;
+                    const r = Math.floor(Math.random() * size), c = Math.floor(Math.random() * size);
+                    if (canPlace(r, c, s, vert, board)) {
                         const coords = [];
                         for (let i = 0; i < s; i++) {
-                            const row = vert ? r + i : r, col = vert ? c : c + i;
-                            board[row][col] = 1; coords.push({r: row, c: col, hit: false});
+                            const rr = vert ? r + i : r, cc = vert ? c : c + i;
+                            board[rr][cc] = 1; coords.push({r: rr, c: cc, hit: false});
                         }
                         ships.push({coords, sunk: false}); ok = true;
                     }
@@ -216,13 +262,13 @@
         }
 
         function userShoot(r, c, cell, data) {
-            if (!isPlayerTurn || gameOver || cell.classList.contains('hit') || cell.classList.contains('miss') || cell.classList.contains('sunk')) return;
+            if (!isPlayerTurn || gameOver || cell.classList.contains('hit') || cell.classList.contains('miss')) return;
             if (data.board[r][c] === 1) {
-                playSound('hit'); handleHit(r, c, data, 'enemy-board');
+                vibrate(40); handleHit(r, c, data, 'enemy-board');
                 if (data.ships.every(s => s.sunk)) { wins++; localStorage.setItem('ojakula-wins', wins); showEndGame(true); }
             } else {
-                playSound('miss'); cell.classList.add('miss'); isPlayerTurn = false;
-                document.getElementById('turn-info').innerText = "Vastane sihib..."; setTimeout(enemyTurn, 800);
+                cell.classList.add('miss'); isPlayerTurn = false;
+                document.getElementById('turn-info').innerText = "Vastane sihib..."; setTimeout(enemyTurn, 600);
             }
         }
 
@@ -231,67 +277,39 @@
             ship.coords.find(co => co.r === r && co.c === c).hit = true;
             document.getElementById(boardId).children[r * size + c].classList.add('hit');
             if (ship.coords.every(co => co.hit)) {
-                ship.sunk = true; playSound('sunk');
-                ship.coords.forEach(co => {
-                    document.getElementById(boardId).children[co.r * size + co.c].classList.replace('hit', 'sunk');
-                    markSurroundings(co.r, co.c, boardId);
-                });
-            }
-        }
-
-        function markSurroundings(r, c, boardId) {
-            for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
-                const rr = r + i, cc = c + j;
-                if (rr >= 0 && rr < size && cc >= 0 && cc < size) {
-                    const cell = document.getElementById(boardId).children[rr * size + cc];
-                    if (!cell.classList.contains('hit') && !cell.classList.contains('sunk')) cell.classList.add('miss');
-                }
+                ship.sunk = true; vibrate([80, 50, 80]);
+                ship.coords.forEach(co => document.getElementById(boardId).children[co.r * size + co.c].classList.replace('hit', 'sunk'));
             }
         }
 
         function enemyTurn() {
             if (gameOver) return;
             let r, c;
-            if (huntStack.length > 0) { const next = huntStack.pop(); r = next.r; c = next.c; }
-            else { do { r = Math.floor(Math.random() * size); c = Math.floor(Math.random() * size); } while (isInvalid(r, c)); }
-            const cell = document.getElementById('my-board').children[r * size + c];
+            do { r = Math.floor(Math.random() * size); c = Math.floor(Math.random() * size); } 
+            while (document.getElementById('my-board').children[r * size + c].classList.contains('hit') || 
+                   document.getElementById('my-board').children[r * size + c].classList.contains('miss'));
+            
             if (myShips.board[r][c] === 1) {
-                playSound('hit'); handleHit(r, c, myShips, 'my-board');
-                addNeighbors(r, c);
+                handleHit(r, c, myShips, 'my-board');
                 if (myShips.ships.every(s => s.sunk)) { losses++; localStorage.setItem('ojakula-losses', losses); showEndGame(false); }
-                else setTimeout(enemyTurn, 800);
+                else setTimeout(enemyTurn, 600);
             } else {
-                playSound('miss'); cell.classList.add('miss'); isPlayerTurn = true;
-                document.getElementById('turn-info').innerText = "Sinu kord tulistada";
+                document.getElementById('my-board').children[r * size + c].classList.add('miss');
+                isPlayerTurn = true; document.getElementById('turn-info').innerText = "Sinu kord!";
             }
         }
 
-        function isInvalid(r, c) {
-            const cell = document.getElementById('my-board').children[r * size + c];
-            return cell.classList.contains('hit') || cell.classList.contains('miss') || cell.classList.contains('sunk');
-        }
-
-        function addNeighbors(r, c) {
-            [{r:1,c:0}, {r:-1,c:0}, {r:0,c:1}, {r:0,c:-1}].forEach(d => {
-                const nr = r + d.r, nc = c + d.c;
-                if (nr >= 0 && nr < size && nc >= 0 && nc < size && !isInvalid(nr, nc)) huntStack.push({r: nr, c: nc});
-            });
-        }
-
         function showEndGame(win) {
-            gameOver = true; updateScoreDisplay();
+            gameOver = true;
             const ov = document.getElementById('message-overlay');
             document.getElementById('win-title').innerText = win ? "VÕIT!" : "KAOTUS...";
-            document.getElementById('win-title').style.color = win ? "var(--ship-color)" : "var(--hit-color)";
-            document.getElementById('win-text').innerText = win ? "Admiral Ojaküla, hiilgav võit!" : "Vastane oli seekord kavalam.";
+            document.getElementById('win-text').innerText = win ? "Admiral, võit on teie!" : "Seekord võitis arvuti.";
             ov.style.display = 'block';
         }
 
-        ['enemy-board', 'my-board'].forEach(id => {
-            const el = document.getElementById(id);
-            for (let i = 0; i < size * size; i++) el.appendChild(document.createElement('div')).className = 'cell';
-        });
         updateScoreDisplay();
+        // Tühi laud alguses
+        render('my-board', {board: Array(size).fill(0).map(()=>Array(size).fill(0))}, false);
     </script>
 </body>
 </html>
