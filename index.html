@@ -48,6 +48,7 @@
 
         #message-overlay { display: none; position: fixed; inset: 0; background: rgba(2, 6, 23, 0.98); z-index: 100; flex-direction: column; align-items: center; justify-content: center; }
         h2 { font-size: 0.65rem; color: var(--ship-color); opacity: 0.8; letter-spacing: 2px; text-transform: uppercase; margin: 5px 0; }
+        .reset-link { font-size: 10px; opacity: 0.4; margin-top: 20px; cursor: pointer; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -90,39 +91,59 @@
         <button class="sec-btn" onclick="startSetup()" id="btn-manual">ASETA LAEVAD ISE</button>
     </div>
 
+    <div class="reset-link" onclick="resetAllData()" id="ui-reset">NULLI SKOOR</div>
+
     <script>
         const i18n = {
             et: {
                 title: "LAEVAD", wins: "VÕIDUD", losses: "KAOTUSED", auto: "KIIRE LAHING (AUTO)", manual: "ASETA LAEVAD ISE",
                 place: "Aseta", turn_user: "SINU KORD", turn_enemy: "VASTANE MÕTLEB...", select_mode: "VALI REŽIIM",
                 radar: "VASTASE RADAR", fleet: "SINU LAEVASTIK", restart: "UUS MÄNG", win: "VÕIT!", loss: "KAOTUS",
-                hor: "SUUND: HORISONTAALNE", ver: "SUUND: VERTIKAALNE", diag: "SUUND: DIAGONAALNE",
+                hor: "SUUND: HOR", ver: "SUUND: VERT", diag: "SUUND: DIAG", reset: "NULLI SKOOR",
                 ships: ["Lennukikandja", "Ristleja", "Allveelaev", "Hävitaja", "Paat"]
             },
             en: {
                 title: "BATTLESHIPS", wins: "WINS", losses: "LOSSES", auto: "QUICK BATTLE (AUTO)", manual: "PLACE MANUALLY",
                 place: "Place", turn_user: "YOUR TURN", turn_enemy: "ENEMY THINKING...", select_mode: "SELECT MODE",
                 radar: "ENEMY RADAR", fleet: "YOUR FLEET", restart: "NEW GAME", win: "VICTORY!", loss: "DEFEAT",
-                hor: "DIRECTION: HORIZONTAL", ver: "DIRECTION: VERTICAL", diag: "DIRECTION: DIAGONAL",
+                hor: "DIR: HORIZONTAL", ver: "DIR: VERTICAL", diag: "DIR: DIAGONAL", reset: "RESET SCORE",
                 ships: ["Carrier", "Battleship", "Submarine", "Destroyer", "Patrol Boat"]
             },
             ru: {
                 title: "МОРСКОЙ БОЙ", wins: "ПОБЕДЫ", losses: "ПОРАЖЕНИЯ", auto: "БЫСТРЫЙ БОЙ (АВТО)", manual: "РАССТАВИТЬ ВРУЧНУЮ",
                 place: "Ставь", turn_user: "ТВОЙ ХОД", turn_enemy: "ВРАГ ДУМАЕТ...", select_mode: "ВЫБЕРИ РЕЖИМ",
                 radar: "РАДАР ВРАГА", fleet: "ТВОЙ ФЛОТ", restart: "НОВАЯ ИГРА", win: "ПОБЕДА!", loss: "ПРОИГРЫШ",
-                hor: "ГОРИЗОНТАЛЬНО", ver: "ВЕРТИКАЛЬНО", diag: "ДИАГОНАЛЬНО",
+                hor: "ГОР", ver: "ВЕРТ", diag: "ДИАГ", reset: "СБРОСИТЬ СЧЕТ",
                 ships: ["Авианосец", "Крейсер", "Подлодка", "Эсминец", "Катер"]
             }
         };
 
-        let curLang = localStorage.getItem('lang') || 'et';
+        // LAADIMINE MÄLUST
+        let curLang = localStorage.getItem('ojakula-lang') || 'et';
+        let wins = parseInt(localStorage.getItem('ojakula-wins')) || 0;
+        let losses = parseInt(localStorage.getItem('ojakula-losses')) || 0;
+
         const size = 10;
         const shipSizes = [5, 4, 3, 3, 2];
         let enemyShips, myShips, gameOver = false, isPlayerTurn = true, setupMode = false, currentShipIdx = 0, placementMode = 0;
 
+        function updateScoreDisplay() {
+            document.getElementById('wins').innerText = wins;
+            document.getElementById('losses').innerText = losses;
+        }
+
+        function resetAllData() {
+            if(confirm("Kas oled kindel?")) {
+                wins = 0; losses = 0;
+                localStorage.setItem('ojakula-wins', 0);
+                localStorage.setItem('ojakula-losses', 0);
+                updateScoreDisplay();
+            }
+        }
+
         function setLang(lang) {
             curLang = lang;
-            localStorage.setItem('lang', lang);
+            localStorage.setItem('ojakula-lang', lang);
             document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-' + lang).classList.add('active');
             updateUI();
@@ -139,6 +160,7 @@
             document.getElementById('ui-enemy-radar').innerText = t.radar;
             document.getElementById('ui-my-fleet').innerText = t.fleet;
             document.getElementById('btn-restart').innerText = t.restart;
+            document.getElementById('ui-reset').innerText = t.reset;
             if (!setupMode && !enemyShips) document.getElementById('turn-info').innerText = t.select_mode;
             if (setupMode) updateSetupText();
             const modes = [t.hor, t.ver, t.diag];
@@ -211,6 +233,7 @@
             enemyShips = placeShipsAuto();
             renderBoard('enemy-board', enemyShips, true);
             document.getElementById('turn-info').innerText = i18n[curLang].turn_user;
+            updateScoreDisplay();
         }
 
         function placeShipsAuto() {
@@ -249,7 +272,11 @@
             if (data.board[i] === 1) {
                 cell.classList.add('hit');
                 checkSinking(Math.floor(i/10), i%10, data, 'enemy-board');
-                if (data.ships.every(s => s.sunk)) showEndGame(true);
+                if (data.ships.every(s => s.sunk)) {
+                    wins++;
+                    localStorage.setItem('ojakula-wins', wins);
+                    showEndGame(true);
+                }
             } else {
                 cell.classList.add('miss'); isPlayerTurn = false;
                 document.getElementById('turn-info').innerText = i18n[curLang].turn_enemy;
@@ -281,7 +308,11 @@
             if (myShips.board[i] === 1) {
                 b.children[i].classList.add('hit');
                 checkSinking(Math.floor(i/10), i%10, myShips, 'my-board');
-                if (myShips.ships.every(s => s.sunk)) showEndGame(false); else setTimeout(enemyTurn, 800);
+                if (myShips.ships.every(s => s.sunk)) {
+                    losses++;
+                    localStorage.setItem('ojakula-losses', losses);
+                    showEndGame(false);
+                } else setTimeout(enemyTurn, 800);
             } else {
                 b.children[i].classList.add('miss'); isPlayerTurn = true;
                 document.getElementById('turn-info').innerText = i18n[curLang].turn_user;
@@ -290,11 +321,13 @@
 
         function showEndGame(win) {
             gameOver = true;
+            updateScoreDisplay();
             document.getElementById('win-title').innerText = win ? i18n[curLang].win : i18n[curLang].loss;
             document.getElementById('message-overlay').style.display = 'flex';
         }
 
         setLang(curLang);
+        updateScoreDisplay();
         renderEmptyBoard('my-board');
     </script>
 </body>
