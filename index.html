@@ -12,24 +12,17 @@
             --text-color: #f1f5f9; --cell-bg: rgba(15, 23, 42, 0.7); 
             --radar-glow: rgba(56, 189, 248, 0.2);
         }
-        body.light-mode {
-            --bg-grad-1: #f8fafc; --bg-grad-2: #f1f5f9;
-            --grid-color: #cbd5e1; --ship-color: #0284c7;
-            --hit-color: #e11d48; --sunk-color: #9333ea; --miss-color: #94a3b8;
-            --text-color: #1e293b; --cell-bg: #ffffff; --radar-glow: rgba(0, 0, 0, 0.05);
-        }
         body {
             background: linear-gradient(180deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
             color: var(--text-color); font-family: -apple-system, system-ui, sans-serif;
             display: flex; flex-direction: column; align-items: center;
-            margin: 0; padding: 10px; transition: all 0.3s ease;
-            user-select: none; min-height: 100vh;
+            margin: 0; padding: 10px; user-select: none; min-height: 100vh;
         }
         
-        .header { width: 100%; max-width: 400px; text-align: center; position: relative; }
+        .header { width: 100%; max-width: 400px; text-align: center; }
         h1 { font-weight: 200; margin: 15px 0 5px 0; font-size: 2.2rem; letter-spacing: 8px; text-transform: uppercase; color: var(--ship-color); text-shadow: 0 0 15px var(--radar-glow); }
 
-        .score-board { display: flex; justify-content: center; gap: 35px; font-size: 0.7rem; letter-spacing: 1.5px; margin: 10px 0; }
+        .score-board { display: flex; justify-content: center; gap: 35px; font-size: 0.7rem; margin: 10px 0; }
         .score-item { display: flex; flex-direction: column; align-items: center; background: rgba(255,255,255,0.03); padding: 8px 15px; border-radius: 12px; }
         .score-val { color: var(--ship-color); font-weight: bold; font-size: 1.3rem; }
         
@@ -39,7 +32,7 @@
             text-align: center; width: 82vw; max-width: 310px;
         }
 
-        #turn-info { font-size: 1rem; height: 1.5rem; color: var(--hit-color); margin: 10px 0; font-weight: bold; }
+        #turn-info { font-size: 1rem; height: 1.5rem; color: var(--hit-color); margin: 15px 0; font-weight: bold; }
         h2 { font-weight: 500; margin: 10px 0; font-size: 0.75rem; letter-spacing: 2px; color: var(--miss-color); text-transform: uppercase; }
         
         .board {
@@ -48,14 +41,15 @@
             width: 82vw; max-width: 310px; aspect-ratio: 1 / 1; margin-bottom: 15px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.3); border-radius: 8px;
         }
-        .cell { background-color: var(--cell-bg); display: flex; align-items: center; justify-content: center; border: 0.5px solid rgba(255,255,255,0.03); }
+        .cell { background-color: var(--cell-bg); display: flex; align-items: center; justify-content: center; border: 0.5px solid rgba(255,255,255,0.03); position: relative; }
         .cell.ship { background-color: rgba(56, 189, 248, 0.4); box-shadow: inset 0 0 10px var(--radar-glow); }
         .cell.preview { background-color: rgba(56, 189, 248, 0.2); }
-        .cell.invalid { background-color: rgba(251, 113, 133, 0.3); }
-        .cell.hit { background-color: var(--hit-color) !important; box-shadow: 0 0 15px var(--hit-color); }
+        .cell.hit { background-color: var(--hit-color) !important; animation: pop 0.4s ease; box-shadow: 0 0 15px var(--hit-color); }
         .cell.sunk { background-color: var(--sunk-color) !important; }
         .cell.miss::after { content: ""; width: 5px; height: 5px; background-color: var(--miss-color); border-radius: 50%; opacity: 0.5; }
         
+        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+
         .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
         button.main-btn { 
             background: linear-gradient(135deg, var(--ship-color), #818cf8); border: none; color: white; 
@@ -158,25 +152,8 @@
                 const cell = document.createElement('div');
                 cell.className = 'cell';
                 if (myShips.board[r][c] === 1) cell.classList.add('ship');
-                
-                cell.onmouseover = () => previewShip(r, c, true);
-                cell.onmouseout = () => previewShip(r, c, false);
                 cell.onclick = () => placeShipManual(r, c);
                 el.appendChild(cell);
-            }
-        }
-
-        function previewShip(r, c, show) {
-            if (!setupMode) return;
-            const s = shipSizes[currentShipIdx];
-            const cells = document.getElementById('my-board').children;
-            for (let i = 0; i < s; i++) {
-                const rr = isVertical ? r + i : r, cc = isVertical ? c : c + i;
-                if (rr < size && cc < size) {
-                    const idx = rr * size + cc;
-                    if (show) cells[idx].classList.add('preview');
-                    else cells[idx].classList.remove('preview');
-                }
             }
         }
 
@@ -276,9 +253,26 @@
             const ship = data.ships.find(s => s.coords.some(co => co.r === r && co.c === c));
             ship.coords.find(co => co.r === r && co.c === c).hit = true;
             document.getElementById(boardId).children[r * size + c].classList.add('hit');
+            
             if (ship.coords.every(co => co.hit)) {
                 ship.sunk = true; vibrate([80, 50, 80]);
-                ship.coords.forEach(co => document.getElementById(boardId).children[co.r * size + co.c].classList.replace('hit', 'sunk'));
+                ship.coords.forEach(co => {
+                    document.getElementById(boardId).children[co.r * size + co.c].classList.replace('hit', 'sunk');
+                    markSurroundings(co.r, co.c, boardId);
+                });
+            }
+        }
+
+        // TÄPPIDE LISAMISE FUNKTSIOON TAGASI
+        function markSurroundings(r, c, boardId) {
+            for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
+                const rr = r + i, cc = c + j;
+                if (rr >= 0 && rr < size && cc >= 0 && cc < size) {
+                    const cell = document.getElementById(boardId).children[rr * size + cc];
+                    if (!cell.classList.contains('hit') && !cell.classList.contains('sunk')) {
+                        cell.classList.add('miss');
+                    }
+                }
             }
         }
 
@@ -287,7 +281,8 @@
             let r, c;
             do { r = Math.floor(Math.random() * size); c = Math.floor(Math.random() * size); } 
             while (document.getElementById('my-board').children[r * size + c].classList.contains('hit') || 
-                   document.getElementById('my-board').children[r * size + c].classList.contains('miss'));
+                   document.getElementById('my-board').children[r * size + c].classList.contains('miss') ||
+                   document.getElementById('my-board').children[r * size + c].classList.contains('sunk'));
             
             if (myShips.board[r][c] === 1) {
                 handleHit(r, c, myShips, 'my-board');
@@ -308,7 +303,6 @@
         }
 
         updateScoreDisplay();
-        // Tühi laud alguses
         render('my-board', {board: Array(size).fill(0).map(()=>Array(size).fill(0))}, false);
     </script>
 </body>
