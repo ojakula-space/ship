@@ -6,16 +6,16 @@
     <title>Laevad</title>
     <style>
         :root {
-            /* Uued, elavamad värvid */
             --bg-grad-1: #0f172a; 
             --bg-grad-2: #1e293b;
-            --grid-color: rgba(148, 163, 184, 0.1); 
+            /* UUS: Palju heledam ja selgem ruudustiku värv */
+            --grid-color: #64748b; 
             --ship-color: #38bdf8;
             --hit-color: #fb7185; 
             --sunk-color: #c084fc; 
-            --miss-color: #64748b;
+            --miss-color: #94a3b8;
             --text-color: #f1f5f9; 
-            --cell-bg: rgba(15, 23, 42, 0.6); 
+            --cell-bg: rgba(15, 23, 42, 0.7); 
             --radar-glow: rgba(56, 189, 248, 0.2);
         }
         body.light-mode {
@@ -25,7 +25,6 @@
             --text-color: #1e293b; --cell-bg: #ffffff; --radar-glow: rgba(0, 0, 0, 0.05);
         }
         body {
-            /* Gradient-taust muudab lehe vähem "mustaks" */
             background: linear-gradient(180deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
             color: var(--text-color);
             font-family: -apple-system, system-ui, sans-serif;
@@ -56,12 +55,18 @@
         
         .board {
             display: grid; grid-template-columns: repeat(10, 1fr); gap: 1px;
+            /* Jooned on nüüd selged ja heledad */
             background-color: var(--grid-color); border: 1px solid var(--grid-color);
             width: 82vw; max-width: 310px; aspect-ratio: 1 / 1; margin-bottom: 15px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.3); border-radius: 8px;
             backdrop-filter: blur(5px);
         }
-        .cell { background-color: var(--cell-bg); display: flex; align-items: center; justify-content: center; border: 0.5px solid rgba(255,255,255,0.02); }
+        .cell { 
+            background-color: var(--cell-bg); 
+            display: flex; align-items: center; justify-content: center; 
+            /* UUS: Igal kasti elemendil on ka oma õrn piirjoon veelgi paremaks eristamiseks */
+            border: 0.5px solid rgba(255,255,255,0.03); 
+        }
         .my-board .cell.ship { background-color: rgba(56, 189, 248, 0.15); box-shadow: inset 0 0 10px var(--radar-glow); }
         .cell.hit { background-color: var(--hit-color) !important; animation: pop 0.4s ease; box-shadow: 0 0 15px var(--hit-color); }
         .cell.sunk { background-color: var(--sunk-color) !important; box-shadow: 0 0 15px var(--sunk-color); }
@@ -124,7 +129,7 @@
     <footer>ARENDAJA: PEREKOND OJAKÜLA<br>2026 APRILL</footer>
 
     <script>
-        // Kogu JavaScript jääb samaks nagu eelmises versioonis
+        // Kogu JavaScript jääb samaks
         const size = 10;
         let enemyShips, myShips, gameOver, isPlayerTurn;
         let huntStack = [], audioCtx = null;
