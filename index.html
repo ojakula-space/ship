@@ -7,9 +7,9 @@
     <style>
         :root {
             --bg-grad-1: #0f172a; --bg-grad-2: #1e293b;
-            --grid-color: #64748b; --ship-color: #38bdf8;
+            --grid-color: #475569; --ship-color: #38bdf8;
             --hit-color: #fb7185; --sunk-color: #c084fc; --miss-color: #94a3b8;
-            --text-color: #f1f5f9; --cell-bg: rgba(15, 23, 42, 0.7); 
+            --text-color: #f1f5f9; --cell-bg: #111827; 
             --radar-glow: rgba(56, 189, 248, 0.2);
         }
         body {
@@ -17,6 +17,7 @@
             color: var(--text-color); font-family: -apple-system, system-ui, sans-serif;
             display: flex; flex-direction: column; align-items: center;
             margin: 0; padding: 10px; user-select: none; min-height: 100vh;
+            -webkit-tap-highlight-color: transparent;
         }
         
         .header { width: 100%; max-width: 400px; text-align: center; }
@@ -36,32 +37,38 @@
         h2 { font-weight: 500; margin: 10px 0; font-size: 0.75rem; letter-spacing: 2px; color: var(--miss-color); text-transform: uppercase; }
         
         .board {
-            display: grid; grid-template-columns: repeat(10, 1fr); gap: 1px;
-            background-color: var(--grid-color); border: 1px solid var(--grid-color);
+            display: grid; grid-template-columns: repeat(10, 1fr);
+            /* Stabiilne ruudustik ilma gapita */
             width: 82vw; max-width: 310px; aspect-ratio: 1 / 1; margin-bottom: 15px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.3); border-radius: 8px;
+            overflow: hidden; border: 1px solid var(--grid-color);
+            transform: translateZ(0); /* Sunnib GPU kasutust stabiilsuse jaoks */
         }
-        .cell { background-color: var(--cell-bg); display: flex; align-items: center; justify-content: center; border: 0.5px solid rgba(255,255,255,0.03); position: relative; }
-        .cell.ship { background-color: rgba(56, 189, 248, 0.4); box-shadow: inset 0 0 10px var(--radar-glow); }
-        .cell.preview { background-color: rgba(56, 189, 248, 0.2); }
-        .cell.hit { background-color: var(--hit-color) !important; animation: pop 0.4s ease; box-shadow: 0 0 15px var(--hit-color); }
+        .cell { 
+            background-color: var(--cell-bg); 
+            border: 0.5px solid var(--grid-color);
+            display: flex; align-items: center; justify-content: center; 
+            position: relative; box-sizing: border-box;
+        }
+        .cell.ship { background-color: rgba(56, 189, 248, 0.3); }
+        .cell.hit { background-color: var(--hit-color) !important; animation: pop 0.3s ease-out; }
         .cell.sunk { background-color: var(--sunk-color) !important; }
-        .cell.miss::after { content: ""; width: 5px; height: 5px; background-color: var(--miss-color); border-radius: 50%; opacity: 0.5; }
+        .cell.miss::after { content: ""; width: 4px; height: 4px; background-color: var(--miss-color); border-radius: 50%; opacity: 0.6; }
         
-        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
         .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
         button.main-btn { 
             background: linear-gradient(135deg, var(--ship-color), #818cf8); border: none; color: white; 
-            padding: 12px 30px; border-radius: 30px; font-weight: bold; cursor: pointer;
+            padding: 14px 30px; border-radius: 30px; font-weight: bold; cursor: pointer;
             font-size: 13px; text-transform: uppercase; letter-spacing: 1px;
         }
         button.sec-btn { background: none; border: 1px solid var(--ship-color); color: var(--ship-color); padding: 10px 25px; border-radius: 30px; font-size: 12px; cursor: pointer; }
 
         #message-overlay {
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(15, 23, 42, 0.98); padding: 40px; border-radius: 25px; text-align: center;
-            z-index: 100; border: 1px solid var(--ship-color); width: 85%; max-width: 320px; backdrop-filter: blur(10px);
+            background: #0f172a; padding: 40px; border-radius: 25px; text-align: center;
+            z-index: 100; border: 2px solid var(--ship-color); width: 85%; max-width: 320px;
         }
         
         .reset-score { font-size: 9px; opacity: 0.4; margin-top: 20px; cursor: pointer; border: 0.5px solid var(--miss-color); border-radius: 5px; padding: 4px; }
@@ -263,7 +270,6 @@
             }
         }
 
-        // TÄPPIDE LISAMISE FUNKTSIOON TAGASI
         function markSurroundings(r, c, boardId) {
             for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
                 const rr = r + i, cc = c + j;
