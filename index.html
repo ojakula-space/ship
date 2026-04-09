@@ -12,6 +12,7 @@
             --miss-color: #64748b; --text-color: #f1f5f9; 
             --accent-glow: rgba(56, 189, 248, 0.3);
         }
+        * { touch-action: manipulation; box-sizing: border-box; }
         body {
             background: radial-gradient(circle at top, var(--bg-grad-2) 0%, var(--bg-grad-1) 100%);
             color: var(--text-color); font-family: -apple-system, system-ui, sans-serif;
@@ -20,8 +21,8 @@
         }
         
         .lang-picker { position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; }
-        .lang-btn { background: rgba(255,255,255,0.1); border: 1px solid var(--grid-line); color: white; padding: 4px 8px; border-radius: 5px; font-size: 0.6rem; cursor: pointer; }
-        .lang-btn.active { border-color: var(--ship-color); color: var(--ship-color); }
+        .lang-btn { background: rgba(255,255,255,0.1); border: 1px solid var(--grid-line); color: white; padding: 4px 10px; border-radius: 5px; font-size: 0.6rem; cursor: pointer; }
+        .lang-btn.active { border-color: var(--ship-color); color: var(--ship-color); box-shadow: 0 0 10px var(--accent-glow); }
 
         h1 { font-weight: 200; margin: 20px 0 5px 0; font-size: 1.8rem; letter-spacing: 5px; text-transform: uppercase; color: var(--ship-color); }
         
@@ -35,11 +36,13 @@
             background-color: var(--grid-line); gap: 1px; border: 1px solid var(--grid-line);
             border-radius: 8px; overflow: hidden; box-shadow: 0 0 20px var(--accent-glow);
         }
-        .cell { background-color: #0f172a; display: flex; align-items: center; justify-content: center; position: relative; }
+        .cell { background-color: #0f172a; display: flex; align-items: center; justify-content: center; position: relative; cursor: crosshair; }
         .cell.ship { background-color: rgba(56, 189, 248, 0.15); }
-        .cell.hit { background-color: var(--hit-color) !important; }
+        .cell.hit { background-color: var(--hit-color) !important; animation: pulse 0.5s; }
         .cell.sunk { background-color: var(--sunk-color) !important; }
-        .cell.miss::after { content: ""; width: 4px; height: 4px; background-color: var(--miss-color); border-radius: 50%; }
+        .cell.miss::after { content: ""; width: 5px; height: 5px; background-color: var(--miss-color); border-radius: 50%; opacity: 0.6; }
+
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(0.9); } 100% { transform: scale(1); } }
 
         #setup-controls { display: none; background: rgba(15, 23, 42, 0.95); padding: 15px; border-radius: 15px; width: 88vw; max-width: 320px; border: 1px solid var(--ship-color); text-align: center; }
         .btn-group { display: flex; flex-direction: column; gap: 8px; width: 88vw; max-width: 320px; }
@@ -80,7 +83,7 @@
 
     <div id="turn-info" style="margin: 10px 0; font-weight: bold; color: #fb7185; height: 1.2rem; font-size: 0.8rem;"></div>
 
-    <div id="game-area" style="display:none;">
+    <div id="game-area" style="display:none; width: 100%; display: flex; flex-direction: column; align-items: center;">
         <h2 id="ui-enemy-radar">VASTASE RADAR</h2>
         <div id="enemy-board" class="board"></div>
     </div>
@@ -128,7 +131,6 @@
         let wins = parseInt(localStorage.getItem('ojakula-wins')) || 0;
         let losses = parseInt(localStorage.getItem('ojakula-losses')) || 0;
 
-        const size = 10;
         const shipSizes = [5, 4, 3, 3, 2];
         let enemyShips, myShips, gameOver = false, isPlayerTurn = true, setupMode = false, currentShipIdx = 0, placementMode = 0;
 
@@ -188,6 +190,7 @@
             myShips = { board: Array(100).fill(0), ships: [] };
             document.getElementById('menu-btns').style.display = 'none';
             document.getElementById('setup-controls').style.display = 'block';
+            document.getElementById('game-area').style.display = 'none';
             renderEmptyBoard('my-board');
             updateSetupText();
         }
@@ -201,41 +204,51 @@
             }
         }
 
+        function canPlace(r, c, s, mode, board) {
+            for (let i = 0; i < s; i++) {
+                let rr = r, cc = c;
+                if (mode === 0) cc += i; else if (mode === 1) rr += i; else { rr += i; cc += i; }
+                if (rr < 0 || rr >= 10 || cc < 0 || cc >= 10 || board[rr * 10 + cc] === 1) return false;
+                
+                // Kontrollime ka ümbritsevaid ruute (et laevad ei puutuks kokku)
+                for (let x = -1; x <= 1; x++) {
+                    for (let y = -1; y <= 1; y++) {
+                        let nr = rr + x, nc = cc + y;
+                        if (nr >= 0 && nr < 10 && nc >= 0 && nc < 10 && board[nr * 10 + nc] === 1) return false;
+                    }
+                }
+            }
+            return true;
+        }
+
         function placeShipManual(r, c) {
             const s = shipSizes[currentShipIdx];
             if (canPlace(r, c, s, placementMode, myShips.board)) {
+                const coords = [];
                 for (let i = 0; i < s; i++) {
                     let rr = r, cc = c;
                     if (placementMode === 0) cc += i; else if (placementMode === 1) rr += i; else { rr += i; cc += i; }
                     myShips.board[rr * 10 + cc] = 1;
+                    coords.push({r: rr, c: cc, hit: false});
                     document.getElementById('my-board').children[rr * 10 + cc].classList.add('ship');
                 }
+                myShips.ships.push({coords, sunk: false});
                 currentShipIdx++;
-                if (currentShipIdx >= 5) {
+                if (currentShipIdx >= shipSizes.length) {
                     document.getElementById('setup-controls').style.display = 'none';
                     startGame(false);
                 } else updateSetupText();
             }
         }
 
-        function canPlace(r, c, s, mode, board) {
-            for (let i = 0; i < s; i++) {
-                let rr = r, cc = c;
-                if (mode === 0) cc += i; else if (mode === 1) rr += i; else { rr += i; cc += i; }
-                if (rr >= 10 || cc >= 10 || board[rr * 10 + cc] === 1) return false;
-                for (let x = -1; x <= 1; x++) for (let y = -1; y <= 1; y++) {
-                    let nr = rr + x, nc = cc + y;
-                    if (nr >= 0 && nr < 10 && nc >= 0 && nc < 10 && board[nr * 10 + nc] === 1) return false;
-                }
-            }
-            return true;
-        }
-
         function startGame(auto) {
             setupMode = false;
             document.getElementById('menu-btns').style.display = 'none';
-            document.getElementById('game-area').style.display = 'block';
-            if (auto) { myShips = placeShipsAuto(); renderBoard('my-board', myShips, false); }
+            document.getElementById('game-area').style.display = 'flex';
+            if (auto) { 
+                myShips = placeShipsAuto(); 
+                renderBoard('my-board', myShips, false); 
+            }
             enemyShips = placeShipsAuto();
             renderBoard('enemy-board', enemyShips, true);
             document.getElementById('turn-info').innerText = i18n[curLang].turn_user;
@@ -285,17 +298,20 @@
             } else {
                 cell.classList.add('miss'); isPlayerTurn = false;
                 document.getElementById('turn-info').innerText = i18n[curLang].turn_enemy;
-                setTimeout(enemyTurn, 800);
+                setTimeout(enemyTurn, 600);
             }
         }
 
         function checkSinking(r, c, data, bId) {
             const s = data.ships.find(ship => ship.coords.some(co => co.r === r && co.c === c));
+            if(!s) return;
             s.coords.find(co => co.r === r && co.c === c).hit = true;
             if (s.coords.every(co => co.hit)) {
                 s.sunk = true;
                 s.coords.forEach(co => {
-                    document.getElementById(bId).children[co.r * 10 + co.c].classList.add('sunk');
+                    const cell = document.getElementById(bId).children[co.r * 10 + co.c];
+                    cell.classList.add('sunk');
+                    // Märgime ümbritsevad ruutud möödalasuks, sest seal ei saa laeva olla
                     for(let x=-1;x<=1;x++) for(let y=-1;y<=1;y++) {
                         let nr=co.r+x, nc=co.c+y;
                         if(nr>=0 && nr<10 && nc>=0 && nc<10) {
@@ -308,17 +324,30 @@
         }
 
         function enemyTurn() {
-            let i; const b = document.getElementById('my-board');
-            do { i = Math.floor(Math.random() * 100); } while (b.children[i].classList.contains('hit') || b.children[i].classList.contains('miss'));
+            if (gameOver) return;
+            const b = document.getElementById('my-board');
+            let availableMoves = [];
+            for (let i = 0; i < 100; i++) {
+                if (!b.children[i].classList.contains('hit') && !b.children[i].classList.contains('miss')) {
+                    availableMoves.push(i);
+                }
+            }
+
+            if (availableMoves.length === 0) return;
+            const i = availableMoves[Math.floor(Math.random() * availableMoves.length)];
+
             if (myShips.board[i] === 1) {
                 b.children[i].classList.add('hit');
                 checkSinking(Math.floor(i/10), i%10, myShips, 'my-board');
                 if (myShips.ships.every(s => s.sunk)) {
                     losses++; localStorage.setItem('ojakula-losses', losses);
                     showEndGame(false);
-                } else setTimeout(enemyTurn, 800);
+                } else {
+                    setTimeout(enemyTurn, 600);
+                }
             } else {
-                b.children[i].classList.add('miss'); isPlayerTurn = true;
+                b.children[i].classList.add('miss');
+                isPlayerTurn = true;
                 document.getElementById('turn-info').innerText = i18n[curLang].turn_user;
             }
         }
