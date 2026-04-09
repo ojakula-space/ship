@@ -12,7 +12,7 @@
             --miss-color: #64748b; --text-color: #f1f5f9; 
             --accent-glow: rgba(56, 189, 248, 0.3);
         }
-        * { touch-action: manipulation; box-sizing: border-box; }
+        * { touch-action: manipulation; box-sizing: border-box; transition: all 0.3s ease; }
         body {
             background: radial-gradient(circle at top, var(--bg-grad-2) 0%, var(--bg-grad-1) 100%);
             color: var(--text-color); font-family: -apple-system, system-ui, sans-serif;
@@ -20,7 +20,7 @@
             margin: 0; padding: 10px; user-select: none; min-height: 100vh;
         }
         
-        .lang-picker { position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; }
+        .lang-picker { position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; z-index: 10; }
         .lang-btn { background: rgba(255,255,255,0.1); border: 1px solid var(--grid-line); color: white; padding: 4px 10px; border-radius: 5px; font-size: 0.6rem; cursor: pointer; }
         .lang-btn.active { border-color: var(--ship-color); color: var(--ship-color); box-shadow: 0 0 10px var(--accent-glow); }
 
@@ -44,14 +44,17 @@
 
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(0.9); } 100% { transform: scale(1); } }
 
-        #setup-controls { display: none; background: rgba(15, 23, 42, 0.95); padding: 15px; border-radius: 15px; width: 88vw; max-width: 320px; border: 1px solid var(--ship-color); text-align: center; }
-        .btn-group { display: flex; flex-direction: column; gap: 8px; width: 88vw; max-width: 320px; }
+        #setup-controls { display: none; background: rgba(15, 23, 42, 0.95); padding: 15px; border-radius: 15px; width: 88vw; max-width: 320px; border: 1px solid var(--ship-color); text-align: center; margin-bottom: 10px; }
+        .btn-group { display: flex; flex-direction: column; gap: 8px; width: 88vw; max-width: 320px; margin-top: 10px; }
         button.main-btn { background: linear-gradient(135deg, #38bdf8, #2563eb); border: none; color: white; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 13px; text-transform: uppercase; cursor: pointer; }
         button.sec-btn { background: rgba(30, 41, 59, 0.5); border: 1px solid var(--grid-line); color: var(--text-color); padding: 12px; border-radius: 12px; font-size: 12px; cursor: pointer; }
 
         #message-overlay { display: none; position: fixed; inset: 0; background: rgba(2, 6, 23, 0.98); z-index: 100; flex-direction: column; align-items: center; justify-content: center; }
         h2 { font-size: 0.65rem; color: var(--ship-color); opacity: 0.8; letter-spacing: 2px; text-transform: uppercase; margin: 5px 0; }
         
+        /* See peidab vastase ala mängu alguses */
+        #game-area { display: none; width: 100%; flex-direction: column; align-items: center; }
+
         .footer { margin-top: auto; padding: 20px 0; font-size: 0.6rem; opacity: 0.5; letter-spacing: 1px; text-transform: uppercase; }
         .reset-link { font-size: 9px; opacity: 0.3; margin-top: 10px; cursor: pointer; text-decoration: underline; }
     </style>
@@ -76,16 +79,16 @@
         <div class="score-item"><span id="ui-losses-label">KAOTUSED</span> <span id="losses" class="score-val" style="color:var(--hit-color)">0</span></div>
     </div>
 
-    <div id="setup-controls">
-        <div style="font-size: 0.8rem; margin-bottom: 10px;"><span id="ui-place-label">Aseta</span>: <span id="current-ship-name" style="color:var(--ship-color); font-weight:bold;"></span></div>
-        <button class="main-btn" style="width: 100%; margin-bottom: 10px;" onclick="cycleMode()" id="mode-btn"></button>
-    </div>
+    <div id="turn-info" style="margin: 5px 0; font-weight: bold; color: #fb7185; height: 1.2rem; font-size: 0.8rem;"></div>
 
-    <div id="turn-info" style="margin: 10px 0; font-weight: bold; color: #fb7185; height: 1.2rem; font-size: 0.8rem;"></div>
-
-    <div id="game-area" style="display:none; width: 100%; display: flex; flex-direction: column; align-items: center;">
+    <div id="game-area">
         <h2 id="ui-enemy-radar">VASTASE RADAR</h2>
         <div id="enemy-board" class="board"></div>
+    </div>
+
+    <div id="setup-controls">
+        <div style="font-size: 0.8rem; margin-bottom: 10px;"><span id="ui-place-label">Aseta</span>: <span id="current-ship-name" style="color:var(--ship-color); font-weight:bold;"></span></div>
+        <button class="main-btn" style="width: 100%;" onclick="cycleMode()" id="mode-btn"></button>
     </div>
 
     <h2 id="ui-my-fleet">SINU LAEVASTIK</h2>
@@ -190,7 +193,7 @@
             myShips = { board: Array(100).fill(0), ships: [] };
             document.getElementById('menu-btns').style.display = 'none';
             document.getElementById('setup-controls').style.display = 'block';
-            document.getElementById('game-area').style.display = 'none';
+            document.getElementById('game-area').style.display = 'none'; // Veendume, et radar on peidus
             renderEmptyBoard('my-board');
             updateSetupText();
         }
@@ -209,13 +212,9 @@
                 let rr = r, cc = c;
                 if (mode === 0) cc += i; else if (mode === 1) rr += i; else { rr += i; cc += i; }
                 if (rr < 0 || rr >= 10 || cc < 0 || cc >= 10 || board[rr * 10 + cc] === 1) return false;
-                
-                // Kontrollime ka ümbritsevaid ruute (et laevad ei puutuks kokku)
-                for (let x = -1; x <= 1; x++) {
-                    for (let y = -1; y <= 1; y++) {
-                        let nr = rr + x, nc = cc + y;
-                        if (nr >= 0 && nr < 10 && nc >= 0 && nc < 10 && board[nr * 10 + nc] === 1) return false;
-                    }
+                for (let x = -1; x <= 1; x++) for (let y = -1; y <= 1; y++) {
+                    let nr = rr + x, nc = cc + y;
+                    if (nr >= 0 && nr < 10 && nc >= 0 && nc < 10 && board[nr * 10 + nc] === 1) return false;
                 }
             }
             return true;
@@ -244,6 +243,7 @@
         function startGame(auto) {
             setupMode = false;
             document.getElementById('menu-btns').style.display = 'none';
+            // Näitame radari alles nüüd!
             document.getElementById('game-area').style.display = 'flex';
             if (auto) { 
                 myShips = placeShipsAuto(); 
@@ -311,7 +311,6 @@
                 s.coords.forEach(co => {
                     const cell = document.getElementById(bId).children[co.r * 10 + co.c];
                     cell.classList.add('sunk');
-                    // Märgime ümbritsevad ruutud möödalasuks, sest seal ei saa laeva olla
                     for(let x=-1;x<=1;x++) for(let y=-1;y<=1;y++) {
                         let nr=co.r+x, nc=co.c+y;
                         if(nr>=0 && nr<10 && nc>=0 && nc<10) {
@@ -332,10 +331,8 @@
                     availableMoves.push(i);
                 }
             }
-
             if (availableMoves.length === 0) return;
             const i = availableMoves[Math.floor(Math.random() * availableMoves.length)];
-
             if (myShips.board[i] === 1) {
                 b.children[i].classList.add('hit');
                 checkSinking(Math.floor(i/10), i%10, myShips, 'my-board');
